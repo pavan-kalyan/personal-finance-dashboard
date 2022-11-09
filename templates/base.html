@@ -2,15 +2,31 @@
 <html>
   <head>
     {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <title>{% block title %}{% endblock %} - My Webpage</title>
     {% endblock %}
   </head>
   <body>
-    <div id="content">{% block content %}{% endblock %}</div>
-    <div id="footer">
+  <div id="sidebar" class="sidebar">
+      <div><a href="/organizations">Organizations</a></div>
+      <div><a href="/accounts">Accounts</a></div>
+      <div><a href="/transactions">Transactions</a></div>
+      <div><a href="/categories">Categories</a></div>
+      <div><a href="/tags">Tags</a></div>
+      <div><a href="/contacts">Contacts</a></div>
+      <form method="post" action="/logout" style="padding: 8px">
+          <input class="btn btn-default" type="submit" value="Logout">
+      </form>
+  </div>
+  {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+          <div class="alert alert-{{messages[0][0]}}">{{ messages[0][1] }}</div>
+      {% endif %}
+  {% endwith %}
+    <div id="content" class="main-view">{% block content %}{% endblock %}</div>
+    <div id="footer" class="footer">
       {% block footer %}
-      &copy; Copyright 2010 by <a href="http://domain.invalid/">you</a>.
+          Source code available <a href="https://github.com/pavan-kalyan/personal-finance-dashboard"> here </a>
       {% endblock %}
     </div>
   </body>

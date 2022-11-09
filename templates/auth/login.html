@@ -1,10 +1,15 @@
 <html>
   <head>
-    <title>Flask Intro - login page</title>
+    <title>Personal Finance Login Manager - login page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="static/css/main.css" rel="stylesheet" media="screen">
   </head>
   <body>
+  {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+          <div style="margin-left: 0" class="alert alert-{{messages[0][0]}}">{{ messages[0][1] }}</div>
+      {% endif %}
+  {% endwith %}
     <div class="container">
       <h1>Please login</h1>
       <br>
@@ -15,9 +20,10 @@
           request.form.password }}">
         <input class="btn btn-default" type="submit" value="Login">
       </form>
-      {% if error %}
-        <p class="error"><strong>Error:</strong> {{ error }}
-      {% endif %}
+        New user? Register <a href="/register">here</a>
+{#      {% if error %}#}
+{#        <p class="error"><strong>Error:</strong> {{ error }}#}
+{#      {% endif %}#}
     </div>
   </body>
 </html>

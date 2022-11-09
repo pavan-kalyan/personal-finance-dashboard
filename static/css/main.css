@@ -1,0 +1,49 @@
+.sidebar {
+height: 100%;
+width: 20%;
+position: absolute;
+left: 0;
+top: 0;
+padding-top: 40px;
+background-color: lightblue;
+}
+
+.sidebar div {
+padding: 8px;
+font-size: 16px;
+display: block;
+}
+
+.main-view {
+margin-left: 20%;
+font-size: 18px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    margin-left: 20%;
+    font-size: 18px;
+}
+
+/* ref: https://blog.teclado.com/flashing-messages-with-flask/ */
+.alert {
+  padding: 8px;
+  margin-left:20%;
+  border-radius: 3px;
+  font-size: 1.2rem;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.alert-error {
+  border-color: darkred;
+  background-color: red;
+  color: white;
+}
+
+.alert-info {
+  border-color: orange;
+  background-color: yellow;
+  color: black;
+}
