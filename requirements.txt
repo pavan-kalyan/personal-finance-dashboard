@@ -1,0 +1,5 @@
+click
+flask
+sqlalchemy
+flask_login
+psycopg2
