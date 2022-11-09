@@ -28,7 +28,7 @@ class User:
     def from_row(row):
         if row is None:
             return None
-        user = User(id=row['id'], name=row['name'], email='email',
+        user = User(id=row['id'], name=row['name'], email=row['email'],
                     password='password', created_at=row['created_at'],
                     updated_at=row['updated_at'],
                     date_of_birth=row['date_of_birth']
