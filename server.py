@@ -18,7 +18,10 @@ Read about it online.
 from flask_login import LoginManager, logout_user
 import os
 from sqlalchemy import *
+
+from models import Account
 from models.User import User
+from models.Account import Account
 from pprint import pprint
 from flask_login import login_user, login_required, current_user
 from flask import Flask, request, render_template, g, redirect, Response, jsonify, flash
@@ -176,20 +179,15 @@ def index():
     return render_template("index.html", **context)
 
 
+# ACCOUNTS ENTITY
+
 @app.route('/accounts', methods=['GET'])
 @login_required
 def accounts_page():
-    return render_template("accounts/list.html", **{})
+    account_rows = engine.execute("SELECT * FROM Accounts where uid=%s LIMIT 20;", current_user.id).fetchall()
+    accounts = [Account.from_row(row).__dict__ for row in account_rows]
+    return render_template("accounts/list.html", accounts=accounts)
 
-
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-    name = request.form['name']
-    print(name)
-    cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-    g.conn.execute(text(cmd), name1=name, name2=name);
-    return redirect('/')
 
 
 @login_manager.user_loader

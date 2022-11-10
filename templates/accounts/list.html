@@ -19,13 +19,15 @@
             <th scope="col">Last Updated</th>
         </tr>
         {% for account in accounts %}
-            <tr>{{ account.name }}</tr>
-            <tr>{{ account.type }}</tr>
-            <tr>{{ account.balance }}</tr>
-            <tr>{{ account.account_number }}</tr>
-            <tr>{{ account.org_id }}</tr>
-            <tr>{{ account.created_at }}</tr>
-            <tr>{{ account.updated_at }}</tr>
+            <tr>
+            <td>{{ account.name }}</td>
+            <td>{{ account.type }}</td>
+            <td>{{ account.balance }}</td>
+            <td>{{ account.account_number }}</td>
+            <td>{{ account.org_id }}</td>
+            <td>{{ account.created_at }}</td>
+            <td>{{ account.updated_at }}</td>
+            </tr>
         {% endfor %}
     </table>
     <br>
