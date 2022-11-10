@@ -1,0 +1,33 @@
+<html>
+<head>
+    <title>Personal Finance Login Manager - Sign Up</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        <div style="margin-left: 0" class="alert alert-{{messages[0][0]}}">{{ messages[0][1] }}</div>
+    {% endif %}
+{% endwith %}
+<div class="container">
+    <h1>Sign Up</h1>
+    <br>
+    <form action="/register" method="post">
+        <input type="text" placeholder="Email" name="email" value="{{
+                request.form.email }}">
+        <input type="password" placeholder="Password" name="password" value="{{
+                request.form.password }}">
+        <input type="text" placeholder="Name" name="name" value="{{
+                request.form.name }}">
+{#        <input type="text" placeholder="Name" name="name" value="{{#}
+{#                request.form.name }}">#}
+        <input class="btn btn-default" type="submit" value="Sign Up">
+    </form>
+    Existing user? Sign in <a href="/login">here</a>
+{#    {% if error %}#}
+{#        <p class="error"><strong>Error:</strong> {{ error }}#}
+{#    {% endif %}#}
+</div>
+</body>
+</html>

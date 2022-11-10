@@ -19,9 +19,9 @@ from flask_login import LoginManager, logout_user
 import os
 from sqlalchemy import *
 from models.User import User
-import json
+from pprint import pprint
 from flask_login import login_user, login_required, current_user
-from flask import Flask, request, render_template, g, redirect, Response, jsonify
+from flask import Flask, request, render_template, g, redirect, Response, jsonify, flash
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -126,12 +126,12 @@ def index():
   """
 
     # DEBUG: this is debugging code to see what request looks like
-    print(request.args)
+    pprint(request)
 
     if current_user is not None and current_user.is_authenticated:
-        redirect('/accounts')
+        return redirect('/accounts')
     else:
-        redirect('/login')
+        return redirect('/login')
     #
     # example of a database query
     #
@@ -176,23 +176,10 @@ def index():
     return render_template("index.html", **context)
 
 
-#
-# This is an example of a different path.  You can see it at
-# 
-#     localhost:8111/another
-#
-# notice that the functio name is another() rather than index()
-# the functions for each app.route needs to have different names
-#
-@app.route('/another')
-def another():
-    return render_template("anotherfile.html")
-
-
 @app.route('/accounts', methods=['GET'])
 @login_required
 def accounts_page():
-    return redirect('/accounts')
+    return render_template("accounts/list.html", **{})
 
 
 # Example of adding new data to the database
@@ -207,7 +194,12 @@ def add():
 
 @login_manager.user_loader
 def load_user(user_id):
-    return engine.execute('SELECT * FROM Users where id=' + str(user_id))
+
+    result = engine.execute('SELECT * FROM Users where id=' + str(user_id))
+    if result is None:
+        return None
+    else:
+        return User.from_row(result.fetchone())
 
 
 @app.post('/login')
@@ -219,11 +211,14 @@ def login():
     if result.rowcount > 0:
         user = User.from_row(result.fetchone())
         login_user(user)
-        print(current_user)
-        return jsonify(user.to_json())
+        pprint(current_user)
+        flash("You were successfully logged in")
+        return redirect('/accounts')
     else:
-        return jsonify({"status": 401,
-                        "reason": "Username or Password Error"})
+        flash("Username or Password Error", 'error')
+        return redirect('/login')
+        # return jsonify({"status": 401,
+        #                 "reason": "Username or Password Error"})
 
 
 @app.get('/login')
@@ -231,11 +226,32 @@ def get_login_page():
     return render_template("auth/login.html", **{})
 
 
+@app.post('/register')
+def register():
+    info = request.form.to_dict()
+    email = info['email']
+    result = engine.execute("SELECT * FROM Users where email=%s;", email)
+    if result.rowcount > 0:
+        flash("This email is taken")
+        return redirect('/register')
+    else:
+        password = info['password']
+        name = info['name']
+        user_row = g.conn.execute(text("INSERT INTO Users(name, email, password) VALUES(:name,:email,:pwd) RETURNING id"), {'name':name, 'email':email, 'pwd':password}).fetchone()
+        result = g.conn.execute("SELECT * FROM Users where id=%s", user_row.id)
+        user = User.from_row(result.fetchone())
+        login_user(user)
+        flash("You were successfully logged in")
+        return redirect('/accounts')
+
+@app.get('/register')
+def get_register_page():
+    return render_template("auth/register.html", **{})
+
 @app.route('/logout', methods=['POST'])
 def logout():
     logout_user()
-    return jsonify(**{'result': 200,
-                      'data': {'message': 'logout success'}})
+    return redirect('/')
 
 
 if __name__ == "__main__":
