@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Transactions{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block content %}
+  <h1>List of Transactions</h1>
+    <table>
+        <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Account Name</th>
+            <th scope="col">Account Number</th>
+            <th scope="col">Contact</th>
+            <th scope="col">Category</th>
+            <th scope="col">Memo</th>
+        </tr>
+        {% for transaction in transactions %}
+            <tr>
+            <td>{{ transaction.date }}</td>
+            <td>{{ transaction.amount }}</td>
+            <td>{{ transaction.account_name }}</td>
+            <td>{{ transaction.account_number }}</td>
+            <td>{{ transaction.contact }}</td>
+            <td>{{ transaction.category }}</td>
+            <td>{{ transaction.memo }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/create.html">Click here to add a new Transaction</a>
+{% endblock %}

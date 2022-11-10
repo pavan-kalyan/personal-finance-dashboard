@@ -19,9 +19,10 @@ from flask_login import LoginManager, logout_user
 import os
 from sqlalchemy import *
 
-from models import Account
+from models import Account, Transaction
 from models.User import User
 from models.Account import Account
+from models.Transaction import Transaction
 from pprint import pprint
 from flask_login import login_user, login_required, current_user
 from flask import Flask, request, render_template, g, redirect, Response, jsonify, flash
@@ -189,10 +190,21 @@ def accounts_page():
     return render_template("accounts/list.html", accounts=accounts)
 
 
+@app.route('/transactions', methods=['GET'])
+@login_required
+def transactions_page():
+    trans_rows = engine.execute("""
+    SELECT T.id, T.amount, A.name as account_name, A.account_number, C.name as contact, Cat.name as category, T.memo, T.date, T.created_at, T.updated_at
+    FROM Transactions T JOIN Accounts A ON T.account_id=A.id FULL JOIN Contacts C ON T.contact_id=C.id FULL JOIN Categories Cat ON T.category_id=Cat.id
+    where A.uid=%s
+    LIMIT 20;
+    """, current_user.id).fetchall()
+    transactions = [Transaction.from_row(row).__dict__ for row in trans_rows]
+    return render_template("transactions/list.html", transactions=transactions)
+
 
 @login_manager.user_loader
 def load_user(user_id):
-
     result = engine.execute('SELECT * FROM Users where id=' + str(user_id))
     if result is None:
         return None
@@ -235,16 +247,20 @@ def register():
     else:
         password = info['password']
         name = info['name']
-        user_row = g.conn.execute(text("INSERT INTO Users(name, email, password) VALUES(:name,:email,:pwd) RETURNING id"), {'name':name, 'email':email, 'pwd':password}).fetchone()
+        user_row = g.conn.execute(
+            text("INSERT INTO Users(name, email, password) VALUES(:name,:email,:pwd) RETURNING id"),
+            {'name': name, 'email': email, 'pwd': password}).fetchone()
         result = g.conn.execute("SELECT * FROM Users where id=%s", user_row.id)
         user = User.from_row(result.fetchone())
         login_user(user)
         flash("You were successfully logged in")
         return redirect('/accounts')
 
+
 @app.get('/register')
 def get_register_page():
     return render_template("auth/register.html", **{})
+
 
 @app.route('/logout', methods=['POST'])
 def logout():

@@ -1,10 +1,11 @@
 class Transaction:
-    def __init__(self, id, amount,  account_id, contact_id, category_id, memo, date=None, created_at=None, updated_at=None):
+    def __init__(self, id, amount, account_name, account_number, contact, category, memo, date = None, created_at = None, updated_at = None):
         self.id = id
         self.amount = amount
-        self.account_id = account_id
-        self.contact_id = contact_id
-        self.category_id = category_id
+        self.account_name = account_name
+        self.account_number = account_number
+        self.contact = contact
+        self.category = category
         self.memo = memo
         self.date = date
         self.created_at = created_at
@@ -25,9 +26,10 @@ class Transaction:
                                   date=row['date'],
                                   created_at=row['created_at'],
                                   updated_at=row['updated_at'],
-                                  account_id=row['account_id'],
-                                  contact_id=row['contact_id'],
-                                  category_id=row['category_id'],
+                                  account_name=row['account_name'],
+                                  account_number=row['account_number'],
+                                  contact=row['contact'],
+                                  category=row['category'],
                                   memo=row['memo']
                                   )
         return transaction
