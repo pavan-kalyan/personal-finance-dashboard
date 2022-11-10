@@ -8,4 +8,26 @@
 {% endblock %}
 {% block content %}
   <h1>List of Accounts</h1>
+    <table>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Type</th>
+            <th scope="col">Balance</th>
+            <th scope="col">Account Number</th>
+            <th scope="col">Org ID (will be renamed)</th>
+            <th scope="col">Created</th>
+            <th scope="col">Last Updated</th>
+        </tr>
+        {% for account in accounts %}
+            <tr>{{ account.name }}</tr>
+            <tr>{{ account.type }}</tr>
+            <tr>{{ account.balance }}</tr>
+            <tr>{{ account.account_number }}</tr>
+            <tr>{{ account.org_id }}</tr>
+            <tr>{{ account.created_at }}</tr>
+            <tr>{{ account.updated_at }}</tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/create.html">Click here to add a new Account</a>
 {% endblock %}
