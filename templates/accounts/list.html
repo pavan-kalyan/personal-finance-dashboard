@@ -7,6 +7,7 @@
   </style>
 {% endblock %}
 {% block content %}
+    <a href="/accounts/create">Click here to add a new Account</a>
   <h1>List of Accounts</h1>
     <table>
         <tr>
@@ -14,9 +15,11 @@
             <th scope="col">Type</th>
             <th scope="col">Balance</th>
             <th scope="col">Account Number</th>
-            <th scope="col">Org ID (will be renamed)</th>
+            <th scope="col">Organization</th>
             <th scope="col">Created</th>
             <th scope="col">Last Updated</th>
+            <th scope="col">Edit</th>
+            <th scope="col">Delete</th>
         </tr>
         {% for account in accounts %}
             <tr>
@@ -24,12 +27,15 @@
             <td>{{ account.type }}</td>
             <td>{{ account.balance }}</td>
             <td>{{ account.account_number }}</td>
-            <td>{{ account.org_id }}</td>
+            <td>{{ account.org_name }}</td>
             <td>{{ account.created_at }}</td>
             <td>{{ account.updated_at }}</td>
+            <td><a href="/accounts/{{ account.id }}/edit">Edit</a></td>
+            <td><form action="/accounts/{{ account.id }}/delete" method="GET" ><button class="btn btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span> Delete</button> </form></td>
             </tr>
         {% endfor %}
     </table>
     <br>
-    <a href="/create.html">Click here to add a new Account</a>
+    <a href="/accounts?page={{ page_num - 1 }}">prev</a><span>     </span>
+    <a href="/accounts?page={{ page_num + 1 }}">next</a>
 {% endblock %}

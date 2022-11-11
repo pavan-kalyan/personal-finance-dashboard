@@ -1,25 +1,11 @@
-#!/usr/bin/env python2.7
-
-"""
-Columbia W4111 Intro to databases
-Example webserver
-
-To run locally
-
-    python server.py
-
-Go to http://localhost:8111 in your browser
-
-
-A debugger such as "pdb" may be helpful for debugging.
-Read about it online.
-"""
+#!/usr/bin/env python3
 
 from flask_login import LoginManager, logout_user
 import os
 from sqlalchemy import *
 
 from models import Account, Transaction
+from models.Organization import Organization
 from models.User import User
 from models.Account import Account
 from models.Transaction import Transaction
@@ -55,14 +41,6 @@ DATABASEURI = "postgresql://" + DB_USER + ":" + DB_PASSWORD + "@" + DB_SERVER + 
 # This line creates a database engine that knows how to connect to the URI above
 #
 engine = create_engine(DATABASEURI)
-
-# Here we create a test table and insert some values in it
-engine.execute("""DROP TABLE IF EXISTS test;""")
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
 
 with open('migrations/initial.sql', 'r') as file:
     data = file.read()
@@ -136,59 +114,94 @@ def index():
         return redirect('/accounts')
     else:
         return redirect('/login')
-    #
-    # example of a database query
-    #
-    cursor = g.conn.execute("SELECT name FROM test")
-    names = []
-    for result in cursor:
-        names.append(result['name'])  # can also be accessed using result[0]
-    cursor.close()
-
-    #
-    # Flask uses Jinja templates, which is an extension to HTML where you can
-    # pass data to a template and dynamically generate HTML based on the data
-    # (you can think of it as simple PHP)
-    # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-    #
-    # You can see an example template in templates/index.html
-    #
-    # context are the variables that are passed to the template.
-    # for example, "data" key in the context variable defined below will be
-    # accessible as a variable in index.html:
-    #
-    #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-    #     <div>{{data}}</div>
-    #
-    #     # creates a <div> tag for each element in data
-    #     # will print:
-    #     #
-    #     #   <div>grace hopper</div>
-    #     #   <div>alan turing</div>
-    #     #   <div>ada lovelace</div>
-    #     #
-    #     {% for n in data %}
-    #     <div>{{n}}</div>
-    #     {% endfor %}
-    #
-    context = dict(data=names)
-
-    #
-    # render_template looks in the templates/ folder for files.
-    # for example, the below file reads template/index.html
-    #
-    return render_template("index.html", **context)
 
 
 # ACCOUNTS ENTITY
 
-@app.route('/accounts', methods=['GET'])
+@app.get('/accounts')
 @login_required
 def accounts_page():
-    account_rows = engine.execute("SELECT * FROM Accounts where uid=%s LIMIT 20;", current_user.id).fetchall()
-    accounts = [Account.from_row(row).__dict__ for row in account_rows]
-    return render_template("accounts/list.html", accounts=accounts)
+    page_num = request.args.get('page')
+    if page_num is None or int(page_num) < 0:
+        page_num = 0
+    else:
+        page_num = int(page_num)
 
+    account_rows = g.conn.execute(
+        text(
+            "SELECT A.*, O.name as org_name FROM Accounts A join Organizations O on A.org_id = O.id where uid=:uid LIMIT 20 OFFSET :page_num ;"),
+        uid=current_user.id, page_num=page_num * 20).fetchall()
+    accounts = [Account.from_row(row).__dict__ for row in account_rows]
+    return render_template("accounts/list.html", accounts=accounts, page_num=page_num)
+
+
+@app.get('/accounts/<id>/edit')
+@login_required
+def account_edit_page(id):
+    org_rows = g.conn.execute("SELECT * FROM Organizations;").fetchall()
+    account_row = g.conn.execute(
+        "SELECT A.*,O.name as org_name FROM Accounts A join Organizations O on A.org_id = O.id WHERE A.uid=%s AND A.id=%s",
+        (current_user.id, id)).fetchone()
+    if account_row is None:
+        flash('Did not find account or it does not exist')
+        return redirect('/accounts')
+    account = Account.from_row(account_row)
+    organizations = [Organization.from_row(row).__dict__ for row in org_rows]
+    return render_template("accounts/edit.html", organizations=organizations, account=account)
+
+
+@app.post('/accounts/<id>/edit')
+@login_required
+def edit_account(id):
+    info = request.form.to_dict()
+    org_id = info['organization']
+    name = info['name']
+    type = info['type']
+    balance = info['balance']
+    account_number = info['account_number']
+    uid = current_user.id
+    g.conn.execute(text(
+        "UPDATE Accounts SET name=:name, org_id =:org_id, type=:type, balance=:balance, account_number=:a_num WHERE uid=:uid AND id=:id"),
+        id=id, uid=uid, balance=balance, a_num=account_number, name=name, org_id=org_id, type=type)
+    return redirect('/accounts')
+
+
+@app.get('/accounts/create')
+@login_required
+def account_creation_page():
+    org_rows = g.conn.execute("SELECT * FROM Organizations;").fetchall()
+    organizations = [Organization.from_row(row).__dict__ for row in org_rows]
+    return render_template("accounts/create.html", organizations=organizations)
+
+
+@app.post('/accounts')
+@login_required
+def accounts():
+    if request.method == "POST":
+        info = request.form.to_dict()
+        org_id = info['organization']
+        name = info['name']
+        type = info['type']
+        balance = info['balance']
+        account_number = info['account_number']
+        uid = current_user.id
+        account_row = g.conn.execute(
+            text(
+                "INSERT INTO Accounts (type, name, balance, account_number, org_id, uid) VALUES (:type, :name, :balance, :a_num, :org_id, :uid) RETURNING ID"),
+            type=type, name=name, balance=balance, a_num=account_number, org_id=org_id, uid=uid).fetchone()
+        flash('Account has been added')
+        return redirect('/accounts')
+
+    return redirect('/accounts')
+
+
+@app.route('/accounts/<id>/delete/', methods=['GET'])
+@login_required
+def delete_account(id):
+    del_res = g.conn.execute("DELETE FROM Accounts where uid=%s AND id=%s", (current_user.id, id))
+    if del_res.rowcount < 1:
+        flash('Failed to delete account. May not exist or you don\'t have the right permissions')
+    return redirect('/accounts')
 
 @app.route('/transactions', methods=['GET'])
 @login_required
@@ -205,7 +218,7 @@ def transactions_page():
 
 @login_manager.user_loader
 def load_user(user_id):
-    result = engine.execute('SELECT * FROM Users where id=' + str(user_id))
+    result = g.conn.execute('SELECT * FROM Users where id=' + str(user_id))
     if result is None:
         return None
     else:
@@ -217,7 +230,7 @@ def login():
     info = request.form.to_dict()
     email = info.get('email', 'guest')
     password = info.get('password', '')
-    result = engine.execute("SELECT * FROM Users where email=%s and password=%s", (email, password))
+    result = g.conn.execute("SELECT * FROM Users where email=%s and password=%s", (email, password))
     if result.rowcount > 0:
         user = User.from_row(result.fetchone())
         login_user(user)
@@ -240,7 +253,7 @@ def get_login_page():
 def register():
     info = request.form.to_dict()
     email = info['email']
-    result = engine.execute("SELECT * FROM Users where email=%s;", email)
+    result = g.conn.execute("SELECT * FROM Users where email=%s;", email)
     if result.rowcount > 0:
         flash("This email is taken")
         return redirect('/register')

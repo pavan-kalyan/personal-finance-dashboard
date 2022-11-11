@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Edit Account{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+    <h1>Add new Account</h1>
+    <br>
+    <form action="/accounts/{{ account.id }}/edit" method="post">
+        <input type="text" placeholder="Type" name="type" value="{{ account.type }}">
+        <input type="text" placeholder="Name" name="name" value="{{ account.name }}">
+        <br>
+        <input type="number" placeholder="Balance" name="balance" value="{{account.balance }}">
+        <input type="number" placeholder="Account Number" name="account_number" value="{{
+                account.account_number }}">
+        <br>
+        <select name="organization" value="{{ account.org }}">
+            {% for org in organizations %}
+                <option value="{{ org.id }}">{{ org.name }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <input class="btn btn-default" type="submit" value="Update Account">
+    </form>
+{% endblock %}

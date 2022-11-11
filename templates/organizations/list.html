@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Organizations{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block content %}
+    <a href="/organizations/create">Click here to add a new Organization</a>
+  <h1>List of Accounts</h1>
+    <table>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Location</th>
+            <th scope="col">Created</th>
+            <th scope="col">Last Updated</th>
+            <th scope="col">Edit</th>
+            <th scope="col">Delete</th>
+        </tr>
+        {% for org in organizations %}
+            <tr>
+            <td>{{ org.name }}</td>
+            <td>{{ org.location }}</td>
+            <td>{{ org.created_at }}</td>
+            <td>{{ org.updated_at }}</td>
+            <td><a href="/organizations/{{ org.id }}/edit">Edit</a></td>
+            <td><form action="/organizations/{{ org.id }}/delete" method="GET" ><button class="btn btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span> Delete</button> </form></td>
+            </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/organizations?page={{ page_num - 1 }}">prev</a><span>     </span>
+    <a href="/organizations?page={{ page_num + 1 }}">next</a>
+{% endblock %}
