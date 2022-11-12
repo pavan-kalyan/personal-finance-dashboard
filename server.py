@@ -68,7 +68,7 @@ def before_request():
         g.conn = engine.connect()
     except:
         print("uh oh, problem connecting to database")
-        import traceback;
+        import traceback
         traceback.print_exc()
         g.conn = None
 
@@ -118,7 +118,7 @@ def index():
     else:
         return redirect('/login')
 
-
+#TODO: VALIDATION
 # ACCOUNTS ENTITY
 @app.get('/accounts')
 @login_required

@@ -1,0 +1,5 @@
+1. Look into refactoring server.py into separate files for each entity
+2. Validate entries in edit and create (start with accounts)
+3. Finish CRUD for tags, orgs, and contacts
+4. Create page for reports
+5. Look for more bugs
