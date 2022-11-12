@@ -10,24 +10,24 @@
     <h1>Edit Transaction</h1>
     <br>
     <form action="/transactions/{{ transaction.id }}/edit" method="post">
-        <input type="date" name="date" value="{{ transaction.date }}">
+        <input type="date" name="date" value="{{ transaction.date.date() }}">
         <input type="number" placeholder="Amount" name="amount" value="{{
                 transaction.amount }}">
         <select name="account" value="{{ transaction.account }}">
             {% for acc in accounts %}
-                <option value="{{ acc.id }}">{{ acc.name }}</option>
+                <option {% if transaction.account_id==acc.id %} selected {% endif %} value="{{ acc.id }}">{{ acc.name }}</option>
             {% endfor %}
         </select>
         <select name="contact" value="{{ transaction.contact }}">
-            <option value=""> None </option>
+            <option value=""> --select a contact-- </option>
             {% for c in contacts %}
-                <option value="{{ c.id }}">{{ c.name }}</option>
+                <option {% if transaction.contact_id==c.id %} selected {% endif %} value="{{ c.id }}">{{ c.name }}</option>
             {% endfor %}
         </select>
         <select name="category" value="{{ transaction.category }}">
-            <option value=""> None </option>
+            <option value=""> --select a category-- </option>
             {% for cat in categories %}
-                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                <option {% if transaction.category_id==cat.id %} selected {% endif %} value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
         </select>
         <input type="text" placeholder="Memo" name="memo" value="{{ transaction.memo }}">

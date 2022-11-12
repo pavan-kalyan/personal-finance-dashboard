@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime
 
 from flask_login import LoginManager, logout_user
 import os
@@ -216,7 +217,7 @@ def transactions_page():
         page_num = int(page_num)
 
     trans_rows = engine.execute(text("""
-    SELECT T.id, T.amount, A.name as account_name, A.account_number, C.name as contact, Cat.name as category, T.memo, T.date, T.created_at, T.updated_at
+    SELECT T.*, A.name as account_name, A.account_number, C.name as contact, Cat.name as category
     FROM Transactions T JOIN Accounts A ON T.account_id=A.id FULL JOIN Contacts C ON T.contact_id=C.id FULL JOIN Categories Cat ON T.category_id=Cat.id
    where A.uid=:uid LIMIT 20 OFFSET :page_num;
     """), uid=current_user.id, page_num=page_num * 20).fetchall()
@@ -235,7 +236,7 @@ def transaction_edit_page(id):
     category_rows = g.conn.execute("SELECT * FROM Categories where uid=%s", current_user.id).fetchall()
 
     transaction_row = g.conn.execute("""
-        SELECT T.id, T.amount, A.name as account_name, A.account_number, C.name as contact, Cat.name as category, T.memo, T.date, T.created_at, T.updated_at
+        SELECT T.*, A.name as account_name, A.account_number, C.name as contact, Cat.name as category
         FROM Transactions T JOIN Accounts A ON T.account_id=A.id FULL JOIN Contacts C ON T.contact_id=C.id FULL JOIN Categories Cat ON T.category_id=Cat.id
         WHERE A.uid=%s AND T.id=%s
     """, (current_user.id, id)).fetchone()
@@ -280,7 +281,7 @@ def transaction_creation_page():
     contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
     accounts = [Account.from_row(row).__dict__ for row in account_rows]
     categories = [Category.from_row(row).__dict__ for row in category_rows]
-    return render_template("transactions/create.html", contacts=contacts, accounts=accounts, categories=categories)
+    return render_template("transactions/create.html", contacts=contacts, accounts=accounts, categories=categories, date=datetime.date.today())
 
 
 @app.post('/transactions')
@@ -345,7 +346,7 @@ def category_edit_page(id):
 
     category = Category.from_row(category_row)
 
-    return render_template("transactions/edit.html", category=category)
+    return render_template("categories/edit.html", category=category)
 
 
 @app.post('/categories/<id>/edit')
@@ -375,7 +376,7 @@ def categories():
         group = info['group']
         transaction_row = g.conn.execute(
             text(
-                "INSERT INTO Categories (uid, name, group) VALUES (:uid, :name, :group) RETURNING ID"),
+                "INSERT INTO Categories (uid, name, \"group\") VALUES (:uid, :name, :group) RETURNING ID"),
             name=name, group=group, uid=current_user.id).fetchone()
         flash('Category has been added')
         return redirect('/categories')

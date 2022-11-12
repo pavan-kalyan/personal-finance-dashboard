@@ -19,7 +19,7 @@
         <br>
         <select name="organization" value="{{ account.org_id }}">
             {% for org in organizations %}
-                <option value="{{ org.id }}">{{ org.name }}</option>
+                <option {% if account.org_id==org.id %} selected {% endif %} value="{{ org.id }}">{{ org.name }}</option>
             {% endfor %}
         </select>
         <br>
