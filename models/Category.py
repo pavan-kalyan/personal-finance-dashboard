@@ -20,6 +20,6 @@ class Category:
                             name=row['name'],
                             group=row['group'],
                             created_at=row['created_at'],
-                            updated_at=row['updated_at'],
+                            updated_at=row['updated_at'] if row['updated_at'] is not None else "",
                             )
         return category

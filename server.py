@@ -314,6 +314,83 @@ def delete_transaction(id):
     return redirect('/transactions')
 
 
+# CATEGORIES ENTITY
+@app.route('/categories', methods=['GET'])
+@login_required
+def categories_page():
+    page_num = request.args.get('page')
+    if page_num is None or int(page_num) < 0:
+        page_num = 0
+    else:
+        page_num = int(page_num)
+
+    cat_rows = engine.execute(text("SELECT * FROM Categories where uid=:uid LIMIT 20 OFFSET :page_num;"),
+                              uid=current_user.id, page_num=page_num * 20).fetchall()
+
+    categories = [Category.from_row(row).__dict__ for row in cat_rows]
+    return render_template("categories/list.html", categories=categories, page_num=page_num)
+
+
+@app.get('/categories/<id>/edit')
+@login_required
+def category_edit_page(id):
+    category_row = g.conn.execute("""
+        SELECT *
+        FROM Categories
+        WHERE uid=%s AND id=%s
+    """, (current_user.id, id)).fetchone()
+    if category_row is None:
+        flash('Did not find category or it does not exist')
+        return redirect('/categories')
+
+    category = Category.from_row(category_row)
+
+    return render_template("transactions/edit.html", category=category)
+
+
+@app.post('/categories/<id>/edit')
+@login_required
+def edit_category(id):
+    info = request.form.to_dict()
+    name = info['name']
+    group = info['group']
+    g.conn.execute(text(
+        "UPDATE Categories SET name=:name, group=:group WHERE id=:id"),
+        name=name, group=group, id=id)
+    return redirect('/categories')
+
+
+@app.get('/categories/create')
+@login_required
+def category_creation_page():
+    return render_template("categories/create.html")
+
+
+@app.post('/categories')
+@login_required
+def categories():
+    if request.method == "POST":
+        info = request.form.to_dict()
+        name = info['name']
+        group = info['group']
+        transaction_row = g.conn.execute(
+            text(
+                "INSERT INTO Categories (uid, name, group) VALUES (:uid, :name, :group) RETURNING ID"),
+            name=name, group=group, uid=current_user.id).fetchone()
+        flash('Category has been added')
+        return redirect('/categories')
+
+    return redirect('/categories')
+
+
+@app.route('/categories/<id>/delete/', methods=['GET'])
+@login_required
+def delete_category(id):
+    del_res = g.conn.execute("DELETE FROM Categories where id=%s", id)
+    if del_res.rowcount < 1:
+        flash('Failed to delete category. May not exist or you don\'t have the right permissions')
+    return redirect('/categories')
+
 @login_manager.user_loader
 def load_user(user_id):
     result = g.conn.execute('SELECT * FROM Users where id=' + str(user_id))

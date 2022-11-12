@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Categories{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block content %}
+    <a href="/categories/create">Click here to add a new Category</a>
+  <h1>List of Categories</h1>
+    <table>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Group</th>
+            <th scope="col">Created</th>
+            <th scope="col">Last Updated</th>
+            <th scope="col">Edit</th>
+            <th scope="col">Delete</th>
+        </tr>
+        {% for category in categories %}
+            <tr>
+            <td>{{ category.name }}</td>
+            <td>{{ category.group }}</td>
+            <td>{{ category.created_at }}</td>
+            <td>{{ category.updated_at }}</td>
+            <td><a href="/categories/{{ category.id }}/edit">Edit</a></td>
+            <td><form action="/categories/{{ category.id }}/delete" method="GET" ><button class="btn btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span> Delete</button> </form></td>
+            </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/categories?page={{ page_num - 1 }}">prev</a><span>     </span>
+    <a href="/categories?page={{ page_num + 1 }}">next</a>
+{% endblock %}

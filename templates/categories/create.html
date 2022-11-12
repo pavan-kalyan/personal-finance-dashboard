@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Add New Category{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+    <h1>Add new Category</h1>
+    <br>
+    <form action="/categories" method="post">
+        <input type="text" placeholder="Name" name="name" value="{{ request.form.name }}">
+        <br>
+        <select name="group">
+            <option selected hidden disabled value="">--select an option--</option>
+            <option value="income">income</option>
+            <option value="expense">expense</option>
+            <option value="investment">investment</option>
+        </select>
+        <br>
+        <input class="btn btn-default" type="submit" value="Add Category">
+    </form>
+{% endblock %}

@@ -25,7 +25,7 @@ class Transaction:
                                   amount=row['amount'],
                                   date=row['date'],
                                   created_at=row['created_at'],
-                                  updated_at=row['updated_at'],
+                                  updated_at=row['updated_at'] if row['updated_at'] is not None else "",
                                   account_name=row['account_name'],
                                   account_number=row['account_number'],
                                   contact=(row['contact'] if row['contact'] is not None else ""),

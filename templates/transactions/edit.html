@@ -30,8 +30,7 @@
                 <option value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
         </select>
-        <input type="text" placeholder="Memo" name="memo" value="{{
-                transaction.memo }}">
+        <input type="text" placeholder="Memo" name="memo" value="{{ transaction.memo }}">
         <br>
         <input class="btn btn-default" type="submit" value="Update Transaction">
     </form>

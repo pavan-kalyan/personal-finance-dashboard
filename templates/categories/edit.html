@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Edit Category{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+    <h1>Edit Category</h1>
+    <br>
+    <form action="/categories/{{ category.id }}/edit" method="post">
+        <input type="text" placeholder="Name" name="name" value="{{ category.name }}">
+        <br>
+        <select name="group">
+            <option value="income">income</option>
+            <option value="expense">expense</option>
+            <option value="investment">investment</option>
+        </select>
+        <br>
+        <input class="btn btn-default" type="submit" value="Update Category">
+    </form>
+{% endblock %}
