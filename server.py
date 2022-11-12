@@ -5,13 +5,14 @@ from flask_login import LoginManager, logout_user
 import os
 from sqlalchemy import *
 
-from models import Account, Transaction
+# from models import Account, Transaction
 from models.Organization import Organization
 from models.User import User
 from models.Account import Account
 from models.Contact import Contact
 from models.Category import Category
 from models.Transaction import Transaction
+from models.Tag import Tag
 from pprint import pprint
 from flask_login import login_user, login_required, current_user
 from flask import Flask, request, render_template, g, redirect, Response, jsonify, flash
@@ -374,7 +375,7 @@ def categories():
         info = request.form.to_dict()
         name = info['name']
         group = info['group']
-        transaction_row = g.conn.execute(
+        category_row = g.conn.execute(
             text(
                 "INSERT INTO Categories (uid, name, \"group\") VALUES (:uid, :name, :group) RETURNING ID"),
             name=name, group=group, uid=current_user.id).fetchone()
@@ -391,6 +392,82 @@ def delete_category(id):
     if del_res.rowcount < 1:
         flash('Failed to delete category. May not exist or you don\'t have the right permissions')
     return redirect('/categories')
+
+
+# TAGS ENTITY
+@app.route('/tags', methods=['GET'])
+@login_required
+def tags_page():
+    page_num = request.args.get('page')
+    if page_num is None or int(page_num) < 0:
+        page_num = 0
+    else:
+        page_num = int(page_num)
+
+    tag_rows = engine.execute(text("SELECT * FROM Tags where uid=:uid LIMIT 20 OFFSET :page_num;"),
+                              uid=current_user.id, page_num=page_num * 20).fetchall()
+
+    tags = [Tag.from_row(row).__dict__ for row in tag_rows]
+    return render_template("tags/list.html", tags=tags, page_num=page_num)
+
+
+@app.get('/tags/<id>/edit')
+@login_required
+def tag_edit_page(id):
+    tag_row = g.conn.execute("""
+        SELECT *
+        FROM Tags
+        WHERE uid=%s AND id=%s
+    """, (current_user.id, id)).fetchone()
+    if tag_row is None:
+        flash('Did not find tag or it does not exist')
+        return redirect('/tags')
+
+    tag = Tag.from_row(tag_row)
+
+    return render_template("tags/edit.html", tag=tag)
+
+
+@app.post('/tags/<id>/edit')
+@login_required
+def edit_tag(id):
+    info = request.form.to_dict()
+    name = info['name']
+    g.conn.execute(text(
+        "UPDATE Tags SET name=:name WHERE id=:id"),
+        name=name,  id=id)
+    return redirect('/tags')
+
+
+@app.get('/tags/create')
+@login_required
+def tag_creation_page():
+    return render_template("tags/create.html")
+
+
+@app.post('/tags')
+@login_required
+def tags():
+    if request.method == "POST":
+        info = request.form.to_dict()
+        name = info['name']
+        tag_row = g.conn.execute(
+            text(
+                "INSERT INTO Tags (uid, name) VALUES (:uid, :name) RETURNING ID"),
+            name=name, uid=current_user.id).fetchone()
+        flash('Tag has been added')
+        return redirect('/tags')
+
+    return redirect('/tags')
+
+
+@app.route('/tags/<id>/delete/', methods=['GET'])
+@login_required
+def delete_tag(id):
+    del_res = g.conn.execute("DELETE FROM Tags where id=%s", id)
+    if del_res.rowcount < 1:
+        flash('Failed to delete Tag. May not exist or you don\'t have the right permissions')
+    return redirect('/tags')
 
 @login_manager.user_loader
 def load_user(user_id):

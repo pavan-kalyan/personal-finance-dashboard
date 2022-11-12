@@ -2,4 +2,7 @@
 2. Validate entries in edit and create (start with accounts)
 3. Finish CRUD for tags, orgs, and contacts
 4. Create page for reports
-5. Look for more bugs
+5. Transactions currently does not display tags.
+    We need to implement a dropdown in transactions that shows all of the tags for a transaction
+    This is where tagged_as comes into play
+6. Look for more bugs

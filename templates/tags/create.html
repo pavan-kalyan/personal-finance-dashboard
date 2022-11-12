@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Add New Tag{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+    <h1>Add new Tag</h1>
+    <br>
+    <form action="/tags" method="post">
+        <input type="text" placeholder="Name" name="name" value="{{ request.form.name }}">
+        <br>
+        <input class="btn btn-default" type="submit" value="Add Tag">
+    </form>
+{% endblock %}

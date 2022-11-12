@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Tags{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block content %}
+    <a href="/tags/create">Click here to add a new Tag</a>
+  <h1>List of Tags</h1>
+    <table>
+        <tr>
+            <th scope="col">Tag</th>
+            <th scope="col">Edit</th>
+            <th scope="col">Delete</th>
+        </tr>
+        {% for tag in tags %}
+            <tr>
+            <td>{{ tag.name }}</td>
+            <td><a href="/tags/{{ tag.id }}/edit">Edit</a></td>
+            <td><form action="/tags/{{ tag.id }}/delete" method="GET" ><button class="btn btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span> Delete</button> </form></td>
+            </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/tags?page={{ page_num - 1 }}">prev</a><span>     </span>
+    <a href="/tags?page={{ page_num + 1 }}">next</a>
+{% endblock %}
