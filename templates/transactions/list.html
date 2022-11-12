@@ -18,6 +18,7 @@
             <th scope="col">Contact</th>
             <th scope="col">Category</th>
             <th scope="col">Memo</th>
+            <th scope="col">Tags</th>
             <th scope="col">Edit</th>
             <th scope="col">Delete</th>
         </tr>
@@ -30,6 +31,7 @@
             <td>{{ transaction.contact }}</td>
             <td>{{ transaction.category }}</td>
             <td>{{ transaction.memo }}</td>
+            <td>{{ transaction.tag_list }}</td>
             <td><a href="/transactions/{{ transaction.id }}/edit">Edit</a></td>
             <td><form action="/transactions/{{ transaction.id }}/delete" method="GET" ><button class="btn btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span> Delete</button> </form></td>
                         </tr>

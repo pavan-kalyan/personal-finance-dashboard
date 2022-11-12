@@ -218,9 +218,12 @@ def transactions_page():
         page_num = int(page_num)
 
     trans_rows = engine.execute(text("""
-    SELECT T.*, A.name as account_name, A.account_number, C.name as contact, Cat.name as category
-    FROM Transactions T JOIN Accounts A ON T.account_id=A.id FULL JOIN Contacts C ON T.contact_id=C.id FULL JOIN Categories Cat ON T.category_id=Cat.id
-   where A.uid=:uid LIMIT 20 OFFSET :page_num;
+    SELECT T.*, A.name as account_name, A.account_number, C.name as contact, Cat.name as category, tag_list
+    FROM Transactions T JOIN Accounts A ON T.account_id=A.id 
+    FULL JOIN Contacts C ON T.contact_id=C.id 
+    FULL JOIN Categories Cat ON T.category_id=Cat.id
+    FULL JOIN (SELECT txn_id, STRING_AGG(Tags.name, ', ') as tag_list FROM Tagged_As TA JOIN Tags on Tags.id=TA.tag_id GROUP BY txn_id) AS taglist ON taglist.txn_id=T.id
+    where A.uid=:uid LIMIT 20 OFFSET :page_num;
     """), uid=current_user.id, page_num=page_num * 20).fetchall()
 
     transactions = [Transaction.from_row(row).__dict__ for row in trans_rows]
@@ -237,8 +240,11 @@ def transaction_edit_page(id):
     category_rows = g.conn.execute("SELECT * FROM Categories where uid=%s", current_user.id).fetchall()
 
     transaction_row = g.conn.execute("""
-        SELECT T.*, A.name as account_name, A.account_number, C.name as contact, Cat.name as category
-        FROM Transactions T JOIN Accounts A ON T.account_id=A.id FULL JOIN Contacts C ON T.contact_id=C.id FULL JOIN Categories Cat ON T.category_id=Cat.id
+        SELECT T.*, A.name as account_name, A.account_number, C.name as contact, Cat.name as category, tag_list
+        FROM Transactions T JOIN Accounts A ON T.account_id=A.id 
+        FULL JOIN Contacts C ON T.contact_id=C.id 
+        FULL JOIN Categories Cat ON T.category_id=Cat.id
+        FULL JOIN (SELECT txn_id, STRING_AGG(Tags.name, ', ') as tag_list FROM Tagged_As TA JOIN Tags on Tags.id=TA.tag_id GROUP BY txn_id) AS taglist ON taglist.txn_id=T.id
         WHERE A.uid=%s AND T.id=%s
     """, (current_user.id, id)).fetchone()
     if transaction_row is None:
