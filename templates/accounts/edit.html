@@ -7,7 +7,7 @@
     </style>
 {% endblock %}
 {% block content %}
-    <h1>Add new Account</h1>
+    <h1>Edit Account</h1>
     <br>
     <form action="/accounts/{{ account.id }}/edit" method="post">
         <input type="text" placeholder="Type" name="type" value="{{ account.type }}">
@@ -17,7 +17,7 @@
         <input type="number" placeholder="Account Number" name="account_number" value="{{
                 account.account_number }}">
         <br>
-        <select name="organization" value="{{ account.org }}">
+        <select name="organization" value="{{ account.org_id }}">
             {% for org in organizations %}
                 <option value="{{ org.id }}">{{ org.name }}</option>
             {% endfor %}

@@ -8,6 +8,8 @@ from models import Account, Transaction
 from models.Organization import Organization
 from models.User import User
 from models.Account import Account
+from models.Contact import Contact
+from models.Category import Category
 from models.Transaction import Transaction
 from pprint import pprint
 from flask_login import login_user, login_required, current_user
@@ -117,7 +119,6 @@ def index():
 
 
 # ACCOUNTS ENTITY
-
 @app.get('/accounts')
 @login_required
 def accounts_page():
@@ -203,17 +204,114 @@ def delete_account(id):
         flash('Failed to delete account. May not exist or you don\'t have the right permissions')
     return redirect('/accounts')
 
+
+# TRANSACTIONS ENTITY
 @app.route('/transactions', methods=['GET'])
 @login_required
 def transactions_page():
-    trans_rows = engine.execute("""
+    page_num = request.args.get('page')
+    if page_num is None or int(page_num) < 0:
+        page_num = 0
+    else:
+        page_num = int(page_num)
+
+    trans_rows = engine.execute(text("""
     SELECT T.id, T.amount, A.name as account_name, A.account_number, C.name as contact, Cat.name as category, T.memo, T.date, T.created_at, T.updated_at
     FROM Transactions T JOIN Accounts A ON T.account_id=A.id FULL JOIN Contacts C ON T.contact_id=C.id FULL JOIN Categories Cat ON T.category_id=Cat.id
-    where A.uid=%s
-    LIMIT 20;
-    """, current_user.id).fetchall()
+   where A.uid=:uid LIMIT 20 OFFSET :page_num;
+    """), uid=current_user.id, page_num=page_num * 20).fetchall()
+
     transactions = [Transaction.from_row(row).__dict__ for row in trans_rows]
-    return render_template("transactions/list.html", transactions=transactions)
+    return render_template("transactions/list.html", transactions=transactions, page_num=page_num)
+
+
+@app.get('/transactions/<id>/edit')
+@login_required
+def transaction_edit_page(id):
+    contact_rows = g.conn.execute("SELECT * FROM Contacts where uid=%s", current_user.id).fetchall()
+    account_rows = g.conn.execute(
+        "SELECT A.*, O.name as org_name FROM Accounts A join Organizations O on A.org_id = O.id where uid=%s",
+        current_user.id).fetchall()
+    category_rows = g.conn.execute("SELECT * FROM Categories where uid=%s", current_user.id).fetchall()
+
+    transaction_row = g.conn.execute("""
+        SELECT T.id, T.amount, A.name as account_name, A.account_number, C.name as contact, Cat.name as category, T.memo, T.date, T.created_at, T.updated_at
+        FROM Transactions T JOIN Accounts A ON T.account_id=A.id FULL JOIN Contacts C ON T.contact_id=C.id FULL JOIN Categories Cat ON T.category_id=Cat.id
+        WHERE A.uid=%s AND T.id=%s
+    """, (current_user.id, id)).fetchone()
+    if transaction_row is None:
+        flash('Did not find transaction or it does not exist')
+        return redirect('/transactions')
+
+    transaction = Transaction.from_row(transaction_row)
+    contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
+    accounts = [Account.from_row(row).__dict__ for row in account_rows]
+    categories = [Category.from_row(row).__dict__ for row in category_rows]
+
+    return render_template("transactions/edit.html", contacts=contacts, accounts=accounts, categories=categories,
+                           transaction=transaction)
+
+
+@app.post('/transactions/<id>/edit')
+@login_required
+def edit_transaction(id):
+    info = request.form.to_dict()
+    date = info['date']
+    amount = info['amount']
+    acc_id = info['account']
+    contact_id = info['contact'] if info['contact'] != "" else None
+    category_id = info['category'] if info['category'] != "" else None
+    memo = info['memo']
+    g.conn.execute(text(
+        "UPDATE Transactions SET date=:date, amount=:amount, account_id=:acc_id, contact_id=:contact_id, category_id=:category_id, memo=:memo WHERE id=:id"),
+        date=date, id=id, amount=amount, acc_id=acc_id, contact_id=contact_id, category_id=category_id, memo=memo)
+    return redirect('/transactions')
+
+
+@app.get('/transactions/create')
+@login_required
+def transaction_creation_page():
+    contact_rows = g.conn.execute("SELECT * FROM Contacts where uid=%s", current_user.id).fetchall()
+    account_rows = g.conn.execute(
+        "SELECT A.*, O.name as org_name FROM Accounts A join Organizations O on A.org_id = O.id where uid=%s",
+        current_user.id).fetchall()
+    category_rows = g.conn.execute("SELECT * FROM Categories where uid=%s", current_user.id).fetchall()
+
+    contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
+    accounts = [Account.from_row(row).__dict__ for row in account_rows]
+    categories = [Category.from_row(row).__dict__ for row in category_rows]
+    return render_template("transactions/create.html", contacts=contacts, accounts=accounts, categories=categories)
+
+
+@app.post('/transactions')
+@login_required
+def transactions():
+    if request.method == "POST":
+        info = request.form.to_dict()
+        date = info['date']
+        amount = info['amount']
+        acc_id = info['account']
+        contact_id = info['contact'] if info['contact'] != "" else None
+        category_id = info['category'] if info['category'] != "" else None
+        memo = info['memo']
+        transaction_row = g.conn.execute(
+            text(
+                "INSERT INTO Transactions (date, amount, account_id, contact_id, category_id, memo) VALUES (:date, :amount, :acc_id, :contact_id, :category_id, :memo) RETURNING ID"),
+            date=date, amount=amount, acc_id=acc_id, contact_id=contact_id, category_id=category_id,
+            memo=memo).fetchone()
+        flash('Transaction has been added')
+        return redirect('/transactions')
+
+    return redirect('/transactions')
+
+
+@app.route('/transactions/<id>/delete/', methods=['GET'])
+@login_required
+def delete_transaction(id):
+    del_res = g.conn.execute("DELETE FROM Transactions where id=%s", id)
+    if del_res.rowcount < 1:
+        flash('Failed to delete transaction. May not exist or you don\'t have the right permissions')
+    return redirect('/transactions')
 
 
 @login_manager.user_loader

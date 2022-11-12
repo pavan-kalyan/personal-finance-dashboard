@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Add New Transaction{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+    <h1>Add new Transaction</h1>
+    <br>
+    <form action="/transactions" method="post">
+        <input type="date" name="date" value="<?php echo $today; ?>">
+        <input type="number" placeholder="Amount" name="amount" value="{{
+                request.form.amount }}">
+        <select name="account">
+            {% for acc in accounts %}
+                <option value="{{ acc.id }}">{{ acc.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="contact">
+            <option value=""> None </option>
+            {% for c in contacts %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="category">
+            <option value=""> None </option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" placeholder="Memo" name="memo" value="{{
+                request.form.memo }}">
+        <br>
+        <input class="btn btn-default" type="submit" value="Add Transaction">
+    </form>
+{% endblock %}

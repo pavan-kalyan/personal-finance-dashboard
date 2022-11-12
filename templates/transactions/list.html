@@ -7,6 +7,7 @@
   </style>
 {% endblock %}
 {% block content %}
+    <a href="/transactions/create">Click here to add a new Transaction</a>
   <h1>List of Transactions</h1>
     <table>
         <tr>
@@ -27,9 +28,12 @@
             <td>{{ transaction.contact }}</td>
             <td>{{ transaction.category }}</td>
             <td>{{ transaction.memo }}</td>
-            </tr>
+            <td><a href="/transactions/{{ transaction.id }}/edit">Edit</a></td>
+            <td><form action="/transactions/{{ transaction.id }}/delete" method="GET" ><button class="btn btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span> Delete</button> </form></td>
+                        </tr>
         {% endfor %}
     </table>
     <br>
-    <a href="/create.html">Click here to add a new Transaction</a>
+    <a href="/transactions?page={{ page_num - 1 }}">prev</a><span>     </span>
+    <a href="/transactions?page={{ page_num + 1 }}">next</a>
 {% endblock %}

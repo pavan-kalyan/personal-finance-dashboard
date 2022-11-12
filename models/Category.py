@@ -18,7 +18,7 @@ class Category:
         category = Category(id=row['id'],
                             uid=row['uid'],
                             name=row['name'],
-                            group=row['email'],
+                            group=row['group'],
                             created_at=row['created_at'],
                             updated_at=row['updated_at'],
                             )
