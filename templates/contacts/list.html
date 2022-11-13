@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Contacts{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block content %}
+    <a href="/contacts/create">Click here to add a new Contact</a>
+  <h1>List of Contacts</h1>
+    <table>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Created</th>
+            <th scope="col">Last Updated</th>
+            <th scope="col">Edit</th>
+            <th scope="col">Delete</th>
+        </tr>
+        {% for contact in contacts %}
+            <tr>
+            <td>{{ contact.name }}</td>
+            <td>{{ contact.email }}</td>
+            <td>{{ contact.created_at }}</td>
+            <td>{{ contact.updated_at }}</td>
+            <td><a href="/contacts/{{ contact.id }}/edit">Edit</a></td>
+            <td><form action="/contacts/{{ contact.id }}/delete" method="GET" ><button class="btn btn-danger" type="submit"><span class="glyphicon glyphicon-trash"></span> Delete</button> </form></td>
+            </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/contacts?page={{ page_num - 1 }}">prev</a><span>     </span>
+    <a href="/contacts?page={{ page_num + 1 }}">next</a>
+{% endblock %}

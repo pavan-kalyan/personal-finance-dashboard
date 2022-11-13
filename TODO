@@ -3,4 +3,7 @@
 3. Finish CRUD for tags, orgs, and contacts
 4. Create page for reports
 5. Transactions currently displays tags but can't edit them
-6. Look for more bugs
+6. Display timestamp without millis
+7. Limit pagination until it's empty
+8. Use Dropdowns for selecting month and year in reports
+9. Look for more bugs

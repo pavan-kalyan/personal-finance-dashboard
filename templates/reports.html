@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block content %}
+  <h1>Reports</h1>
+    <form action="/reports/" method="get">
+        <input type="text" placeholder="Year" name="year">
+        <input type="text" placeholder="Month" name="month">
+        <br>
+        <input class="btn btn-default" type="submit" value="Generate Report">
+    </form>
+    <table>
+        <tr>
+            <th scope="col">Year</th>
+            <th scope="col">Month</th>
+            <th scope="col">Total Expenditure</th>
+            <th scope="col">Most Expensive Transaction</th>
+            <th scope="col">Category Name</th>
+        </tr>
+        {% for row in expenditure_report %}
+            <tr>
+                <td>{{ row.year | round(0) }}</td>
+            <td>{{ row.month }}</td>
+            <td>{{ row.total_expenditure }}</td>
+            <td>{{ row.most_expensive_transaction }}</td>
+            <td>{{ row.category_name }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <br>
+{% endblock %}

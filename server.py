@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import datetime
+import re
 
 from flask_login import LoginManager, logout_user
 import os
 from sqlalchemy import *
 
+from models.ExpenditureReport import ExpenditureReport
 # from models import Account, Transaction
 from models.Organization import Organization
 from models.User import User
@@ -119,6 +121,21 @@ def index():
     else:
         return redirect('/login')
 
+@app.get('/organizations')
+@login_required
+def organizations_page():
+    page_num = request.args.get('page')
+    if page_num is None or int(page_num) < 0:
+        page_num = 0
+    else:
+        page_num = int(page_num)
+
+    org_rows = g.conn.execute(
+        text(
+            "SELECT * FROM Organizations LIMIT 20 OFFSET :page_num;"), page_num=page_num * 20).fetchall()
+    organizations = [Organization.from_row(row).__dict__ for row in org_rows]
+    return render_template("organizations/list.html", organizations=organizations, page_num=page_num)
+
 #TODO: VALIDATION
 # ACCOUNTS ENTITY
 @app.get('/accounts')
@@ -180,22 +197,23 @@ def account_creation_page():
 @app.post('/accounts')
 @login_required
 def accounts():
-    if request.method == "POST":
-        info = request.form.to_dict()
-        org_id = info['organization']
-        name = info['name']
-        type = info['type']
-        balance = info['balance']
-        account_number = info['account_number']
-        uid = current_user.id
-        account_row = g.conn.execute(
-            text(
-                "INSERT INTO Accounts (type, name, balance, account_number, org_id, uid) VALUES (:type, :name, :balance, :a_num, :org_id, :uid) RETURNING ID"),
-            type=type, name=name, balance=balance, a_num=account_number, org_id=org_id, uid=uid).fetchone()
-        flash('Account has been added')
+    info = request.form.to_dict()
+    org_id = info['organization']
+    name = info['name']
+    type = info['type']
+    balance = info['balance']
+    account_number = info['account_number']
+    if not name or not type or not account_number or not org_id:
+        flash("Please ensure that you have filled in relevant fields")
         return redirect('/accounts')
-
+    uid = current_user.id
+    account_row = g.conn.execute(
+        text(
+            "INSERT INTO Accounts (type, name, balance, account_number, org_id, uid) VALUES (:type, :name, :balance, :a_num, :org_id, :uid) RETURNING ID"),
+        type=type, name=name, balance=balance, a_num=account_number, org_id=org_id, uid=uid).fetchone()
+    flash('Account has been added')
     return redirect('/accounts')
+
 
 
 @app.route('/accounts/<id>/delete/', methods=['GET'])
@@ -475,6 +493,125 @@ def delete_tag(id):
         flash('Failed to delete Tag. May not exist or you don\'t have the right permissions')
     return redirect('/tags')
 
+
+@app.get('/contacts/')
+@login_required
+def list_contacts():
+    page_num = request.args.get('page')
+    if page_num is None or int(page_num) < 0:
+        page_num = 0
+    else:
+        page_num = int(page_num)
+
+    contact_rows = engine.execute(text("SELECT * FROM Contacts where uid=:uid LIMIT 20 OFFSET :page_num;"),
+                              uid=current_user.id, page_num=page_num * 20).fetchall()
+
+    contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
+    return render_template("contacts/list.html", contacts=contacts, page_num=page_num)
+
+@app.get('/contacts/create')
+@login_required
+def contact_creation_page():
+    return render_template("contacts/create.html")
+
+@app.post('/contacts/')
+@login_required
+def add_contact():
+    info = request.form.to_dict()
+    name = info['name']
+    email = info['email']
+    if not name:
+        flash("Please enter name")
+        return redirect('/contacts')
+    if not email:
+        flash("Please enter email")
+        return redirect('/contacts')
+    if not re.match(EMAIL_REGEX,email):
+        flash("Please enter valid email")
+        return redirect('/contacts')
+    contact_row = g.conn.execute(
+        text(
+            "INSERT INTO Contacts (uid, name, email) VALUES (:uid, :name, :email) RETURNING ID"),
+        name=name, uid=current_user.id, email=email).fetchone()
+    flash('Contact has been added')
+    return redirect('/contacts')
+
+@app.get('/contacts/<id>/edit')
+@login_required
+def get_edit_contact_page(id):
+    contact_row = g.conn.execute("""
+        SELECT *
+        FROM Contacts
+        WHERE uid=%s AND id=%s 
+        """, (current_user.id, id)).fetchone()
+    if contact_row is None:
+        flash('Did not find Contact or you don\'t have the right permission')
+        return redirect('/contacts')
+
+    contact = Contact.from_row(contact_row)
+
+    return render_template("contacts/edit.html", contact=contact)
+
+@app.post('/contacts/<id>/edit')
+@login_required
+def edit_contact(id):
+    info = request.form.to_dict()
+    name = info['name']
+    email = info['email']
+    if not name:
+        flash("Please enter name")
+        return redirect('/contacts')
+    if not email:
+        flash("Please enter email")
+        return redirect('/contacts')
+    if not re.match(EMAIL_REGEX,email):
+        flash("Please enter valid email")
+        return redirect('/contacts')
+
+    g.conn.execute(text(
+        "UPDATE Contacts SET name=:name, email=:email WHERE id=:id"),
+        name=name, email=email, id=id)
+    return redirect('/contacts')
+
+
+@app.get('/contacts/<id>/delete')
+@login_required
+def delete_contact(id):
+    try:
+        del_res = g.conn.execute("DELETE FROM Contacts where id=%s", id)
+    except Exception as inst:
+        if "ForeignKeyViolation" in inst.args[0]:
+            flash("A transaction that uses this contact exists. delete that first.")
+            return redirect('/contacts')
+
+
+    if del_res.rowcount < 1:
+        flash('Failed to delete Contact. May not exist or you don\'t have the right permissions')
+    return redirect('/contacts')
+
+@app.get('/reports/')
+@login_required
+def get_reports():
+    month = request.args.get('month')
+    year = request.args.get('year')
+    query="""SELECT sum(T.amount) as total_expenditure, MAX(T.amount) as most_expensive_transaction, 
+            EXTRACT(MONTH FROM T.date) as month, EXTRACT(YEAR FROM T.date) as year,
+            C.name as category_name 
+        FROM Transactions T join Categories C on T.category_id = C.id join Accounts A on A.id = T.account_id
+        WHERE T.amount < 0 and A.uid = %s
+        """
+    if month:
+        query += " AND EXTRACT(MONTH FROM T.date)=" + month + " "
+    if year:
+        query += " AND EXTRACT(YEAR FROM T.date)=" + year + " "
+
+    query +="""
+        GROUP BY EXTRACT(YEAR FROM T.date), EXTRACT(MONTH FROM T.date), C.id
+        ORDER BY total_expenditure asc;"""
+    rows = g.conn.execute(query, current_user.id)
+    report_rows = [ExpenditureReport.from_row(row).__dict__ for row in rows]
+    return render_template("/reports.html", expenditure_report=report_rows)
+
 @login_manager.user_loader
 def load_user(user_id):
     result = g.conn.execute('SELECT * FROM Users where id=' + str(user_id))
@@ -538,6 +675,8 @@ def get_register_page():
 def logout():
     logout_user()
     return redirect('/')
+
+EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
 
 if __name__ == "__main__":

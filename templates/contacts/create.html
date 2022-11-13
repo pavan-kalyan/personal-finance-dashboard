@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Add New Contact{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+    <h1>Add new Contact</h1>
+    <br>
+    <form action="/contacts" method="post">
+        <input type="text" placeholder="Name" name="name" value="{{
+                request.form.name }}">
+        <br>
+        <input type="text" placeholder="Email" name="email" value="{{
+                request.form.email }}">
+        <br>
+        <input class="btn btn-default" type="submit" value="Add Account">
+    </form>
+{% endblock %}
