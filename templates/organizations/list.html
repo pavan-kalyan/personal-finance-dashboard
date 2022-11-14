@@ -12,15 +12,11 @@
         <tr>
             <th scope="col">Name</th>
             <th scope="col">Location</th>
-            <th scope="col">Created</th>
-            <th scope="col">Last Updated</th>
         </tr>
         {% for org in organizations %}
             <tr>
             <td>{{ org.name }}</td>
             <td>{{ org.location }}</td>
-            <td>{{ org.created_at }}</td>
-            <td>{{ org.updated_at }}</td>
             </tr>
         {% endfor %}
     </table>

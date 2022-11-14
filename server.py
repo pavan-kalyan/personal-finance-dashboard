@@ -179,7 +179,7 @@ def organizations_page():
 
     org_rows = g.conn.execute(
         text(
-            "SELECT * FROM Organizations LIMIT 20 OFFSET :page_num;"), page_num=page_num * 20).fetchall()
+            "SELECT * FROM Organizations ORDER BY id LIMIT 20 OFFSET :page_num ;"), page_num=page_num * 20).fetchall()
     organizations = [Organization.from_row(row).__dict__ for row in org_rows]
     return render_template("organizations/list.html", organizations=organizations, page_num=page_num)
 
@@ -195,7 +195,7 @@ def accounts_page():
 
     account_rows = g.conn.execute(
         text(
-            "SELECT A.*, O.name as org_name FROM Accounts A join Organizations O on A.org_id = O.id where uid=:uid LIMIT 20 OFFSET :page_num ;"),
+            "SELECT A.*, O.name as org_name FROM Accounts A join Organizations O on A.org_id = O.id where uid=:uid ORDER BY A.id LIMIT 20 OFFSET :page_num;"),
         uid=current_user.id, page_num=page_num * 20).fetchall()
     accounts = [Account.from_row(row).__dict__ for row in account_rows]
     return render_template("accounts/list.html", accounts=accounts, page_num=page_num)
@@ -243,7 +243,7 @@ def edit_account(id):
         return redirect('/accounts/' + str(id) + '/edit')
     uid = current_user.id
     g.conn.execute(text(
-        "UPDATE Accounts SET name=:name, org_id =:org_id, type=:type, balance=:balance, account_number=:a_num WHERE uid=:uid AND id=:id"),
+        "UPDATE Accounts SET name=:name, org_id =:org_id, type=:type, balance=:balance, account_number=:a_num, updated_at=now() WHERE uid=:uid AND id=:id"),
         id=id, uid=uid, balance=balance, a_num=account_number, name=name, org_id=org_id, type=type)
     return redirect('/accounts')
 
@@ -315,7 +315,7 @@ def transactions_page():
     FULL JOIN Contacts C ON T.contact_id=C.id 
     FULL JOIN Categories Cat ON T.category_id=Cat.id
     FULL JOIN (SELECT txn_id, STRING_AGG(Tags.name, ', ') as tag_list FROM Tagged_As TA JOIN Tags on Tags.id=TA.tag_id GROUP BY txn_id) AS taglist ON taglist.txn_id=T.id
-    where A.uid=:uid LIMIT 20 OFFSET :page_num;
+    where A.uid=:uid  ORDER BY T.date desc LIMIT 20 OFFSET :page_num;
     """), uid=current_user.id, page_num=page_num * 20).fetchall()
 
     transactions = [Transaction.from_row(row).__dict__ for row in trans_rows]
@@ -375,7 +375,7 @@ def edit_transaction(id):
         return redirect('/transactions/%s/edit' % id)
 
     g.conn.execute(text(
-        "UPDATE Transactions SET date=:date, amount=:amount, account_id=:acc_id, contact_id=:contact_id, category_id=:category_id, memo=:memo WHERE id=:id"),
+        "UPDATE Transactions SET date=:date, amount=:amount, account_id=:acc_id, contact_id=:contact_id, category_id=:category_id, memo=:memo, updated_at=now() WHERE id=:id"),
         date=date, id=id, amount=amount, acc_id=acc_id, contact_id=contact_id, category_id=category_id, memo=memo)
 
     g.conn.execute(text(
@@ -462,7 +462,7 @@ def categories_page():
     else:
         page_num = int(page_num)
 
-    cat_rows = engine.execute(text("SELECT * FROM Categories where uid=:uid LIMIT 20 OFFSET :page_num;"),
+    cat_rows = engine.execute(text("SELECT * FROM Categories where uid=:uid ORDER BY name LIMIT 20 OFFSET :page_num;"),
                               uid=current_user.id, page_num=page_num * 20).fetchall()
 
     categories = [Category.from_row(row).__dict__ for row in cat_rows]
@@ -501,7 +501,7 @@ def edit_category(id):
         return redirect('/categories/%s/edit' % id)
 
     g.conn.execute(text(
-        "UPDATE Categories SET name=:name, group=:group WHERE id=:id"),
+        "UPDATE Categories SET name=:name, \"group\"=:group, updated_at=now() WHERE id=:id"),
         name=name, group=group, id=id)
     return redirect('/categories')
 
@@ -556,7 +556,7 @@ def tags_page():
     else:
         page_num = int(page_num)
 
-    tag_rows = engine.execute(text("SELECT * FROM Tags where uid=:uid LIMIT 20 OFFSET :page_num;"),
+    tag_rows = engine.execute(text("SELECT * FROM Tags where uid=:uid ORDER BY name LIMIT 20 OFFSET :page_num;"),
                               uid=current_user.id, page_num=page_num * 20).fetchall()
 
     tags = [Tag.from_row(row).__dict__ for row in tag_rows]
@@ -641,8 +641,8 @@ def list_contacts():
     else:
         page_num = int(page_num)
 
-    contact_rows = engine.execute(text("SELECT * FROM Contacts where uid=:uid LIMIT 20 OFFSET :page_num;"),
-                                  uid=current_user.id, page_num=page_num * 20).fetchall()
+    contact_rows = g.conn.execute(text("SELECT * FROM Contacts where uid=:uid ORDER BY id LIMIT 20 OFFSET :page_num;"),
+                              uid=current_user.id, page_num=page_num * 20).fetchall()
 
     contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
     return render_template("contacts/list.html", contacts=contacts, page_num=page_num)
@@ -654,7 +654,7 @@ def contact_creation_page():
     return render_template("contacts/create.html")
 
 
-@app.post('/contacts/')
+@app.post('/contacts')
 @login_required
 def add_contact():
     info = request.form.to_dict()
@@ -711,7 +711,7 @@ def edit_contact(id):
         return redirect('/contacts')
 
     g.conn.execute(text(
-        "UPDATE Contacts SET name=:name, email=:email WHERE id=:id"),
+        "UPDATE Contacts SET name=:name, email=:email, updated_at=now() WHERE id=:id"),
         name=name, email=email, id=id)
     return redirect('/contacts')
 
