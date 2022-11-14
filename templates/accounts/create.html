@@ -10,8 +10,12 @@
     <h1>Add new Account</h1>
     <br>
     <form action="/accounts" method="post">
-        <input type="text" placeholder="Type" name="type" value="{{
-                request.form.type }}">
+        <select name="type">
+            <option selected hidden disabled value="">--select account type--</option>
+            {% for type in types %}
+                <option value="{{ type }}">{{ type }}</option>
+            {% endfor %}
+        </select>
         <input type="text" placeholder="Name" name="name" value="{{
                 request.form.name }}">
         <br>

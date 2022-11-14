@@ -13,9 +13,9 @@ class ExpenditureReport:
             return None
         report_row = ExpenditureReport(
             category_name=row['category_name'],
-            year =int(row['year']),
-            month = int(row['month']),
+            year=int(row['year']),
+            month=int(row['month']),
             total_expenditure=row['total_expenditure'],
-            most_expensive_transaction = row['most_expensive_transaction']
+            most_expensive_transaction=row['most_expensive_transaction']
         )
         return report_row

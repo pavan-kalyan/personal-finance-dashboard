@@ -88,6 +88,12 @@ def teardown_request(exception):
         pass
 
 
+def handle_generic_internal_error(e):
+    flash('An internal error occurred. Please Contact Support.')
+    return redirect('/accounts')
+
+
+app.register_error_handler(500, handle_generic_internal_error)
 #
 # @app.route is a decorator around index() that means:
 #   run index() whenever the user tries to access the "/" path using a GET request
@@ -136,8 +142,7 @@ def organizations_page():
     organizations = [Organization.from_row(row).__dict__ for row in org_rows]
     return render_template("organizations/list.html", organizations=organizations, page_num=page_num)
 
-#TODO: VALIDATION
-# ACCOUNTS ENTITY
+
 @app.get('/accounts')
 @login_required
 def accounts_page():
@@ -163,11 +168,11 @@ def account_edit_page(id):
         "SELECT A.*,O.name as org_name FROM Accounts A join Organizations O on A.org_id = O.id WHERE A.uid=%s AND A.id=%s",
         (current_user.id, id)).fetchone()
     if account_row is None:
-        flash('Did not find account or it does not exist')
+        flash('Did not find account or you don\'t have the permission to view it')
         return redirect('/accounts')
     account = Account.from_row(account_row)
     organizations = [Organization.from_row(row).__dict__ for row in org_rows]
-    return render_template("accounts/edit.html", organizations=organizations, account=account)
+    return render_template("accounts/edit.html", organizations=organizations, account=account, types=['savings', 'checking', 'investment'])
 
 
 @app.post('/accounts/<id>/edit')
@@ -175,10 +180,25 @@ def account_edit_page(id):
 def edit_account(id):
     info = request.form.to_dict()
     org_id = info['organization']
+    if not org_id:
+        flash('organization doesn\'t exist')
+        return redirect('/accounts/' + str(id) + '/edit')
     name = info['name']
-    type = info['type']
+    if not name:
+        flash('Please provide name')
+        return redirect('/accounts/' + str(id) + '/edit')
+    type = info.get('type',None)
+    if not type:
+        flash('Please choose type')
+        return redirect('/accounts/' + str(id) + '/edit')
     balance = info['balance']
+    if not balance:
+        flash('Please provide balance')
+        return redirect('/accounts/' + str(id) + '/edit')
     account_number = info['account_number']
+    if not account_number:
+        flash('Please provide account_number')
+        return redirect('/accounts/' + str(id) + '/edit')
     uid = current_user.id
     g.conn.execute(text(
         "UPDATE Accounts SET name=:name, org_id =:org_id, type=:type, balance=:balance, account_number=:a_num WHERE uid=:uid AND id=:id"),
@@ -191,7 +211,7 @@ def edit_account(id):
 def account_creation_page():
     org_rows = g.conn.execute("SELECT * FROM Organizations;").fetchall()
     organizations = [Organization.from_row(row).__dict__ for row in org_rows]
-    return render_template("accounts/create.html", organizations=organizations)
+    return render_template("accounts/create.html", organizations=organizations, types=['savings', 'checking', 'investment'])
 
 
 @app.post('/accounts')
@@ -200,12 +220,24 @@ def accounts():
     info = request.form.to_dict()
     org_id = info['organization']
     name = info['name']
-    type = info['type']
+    type = info.get('type',None)
     balance = info['balance']
     account_number = info['account_number']
-    if not name or not type or not account_number or not org_id:
-        flash("Please ensure that you have filled in relevant fields")
-        return redirect('/accounts')
+    if not type or type not in ['savings', 'checking', 'investment']:
+        flash('Please choose correct type')
+        return redirect('/accounts/create')
+    if not org_id:
+        flash('organization doesn\'t exist')
+        return redirect('/accounts/create')
+    if not name:
+        flash('Please provide name')
+        return redirect('/accounts/create')
+    if not balance:
+        flash('Please provide balance')
+        return redirect('/accounts/create')
+    if not account_number:
+        flash('Please provide account_number')
+        return redirect('/accounts/create')
     uid = current_user.id
     account_row = g.conn.execute(
         text(
@@ -594,6 +626,8 @@ def delete_contact(id):
 def get_reports():
     month = request.args.get('month')
     year = request.args.get('year')
+    years = g.conn.execute("""SELECT DISTINCT EXTRACT(YEAR FROM T.date) FROM Transactions T join Accounts A on A.id = T.account_id where T.amount < 0 and A.uid=%s""", current_user.id).fetchall()
+    years = [int(year[0]) for year in years]
     query="""SELECT sum(T.amount) as total_expenditure, MAX(T.amount) as most_expensive_transaction, 
             EXTRACT(MONTH FROM T.date) as month, EXTRACT(YEAR FROM T.date) as year,
             C.name as category_name 
@@ -610,7 +644,9 @@ def get_reports():
         ORDER BY total_expenditure asc;"""
     rows = g.conn.execute(query, current_user.id)
     report_rows = [ExpenditureReport.from_row(row).__dict__ for row in rows]
-    return render_template("/reports.html", expenditure_report=report_rows)
+    return render_template("/reports.html", expenditure_report=report_rows, years=years,
+                           current_year=year, current_month=month)
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -636,8 +672,6 @@ def login():
     else:
         flash("Username or Password Error", 'error')
         return redirect('/login')
-        # return jsonify({"status": 401,
-        #                 "reason": "Username or Password Error"})
 
 
 @app.get('/login')
