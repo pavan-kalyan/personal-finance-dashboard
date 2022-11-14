@@ -131,6 +131,43 @@ def index():
         return redirect('/login')
 
 
+@app.get('/profile')
+@login_required
+def profile_page():
+    return render_template('/profile.html', user=current_user)
+
+@app.post('/profile/<id>/edit')
+@login_required
+def update_profile(id):
+    info = request.form.to_dict()
+    name = info['name']
+    email = info['email']
+    password = info['password']
+    dob = info['dob']
+
+    if not name:
+        flash("Please enter a name")
+        return redirect('/profile')
+    if not dob:
+        flash("Please select your date of birth")
+        return redirect('/profile')
+    if not email:
+        flash("Please enter email")
+        return redirect('/profile')
+    if not re.match(EMAIL_REGEX, email):
+        flash("Please enter valid email")
+        return redirect('/profile')
+    if not password:
+        flash("Please enter a password")
+        return redirect('/profile')
+
+    g.conn.execute(text(
+        "UPDATE Users SET name=:name, email=:email, password=:password, date_of_birth=:dob WHERE id=:id"
+    ), name=name, email=email, password=password, dob=dob, id=id)
+    return redirect('/profile')
+
+
+
 @app.get('/organizations')
 @login_required
 def organizations_page():
@@ -263,7 +300,7 @@ def delete_account(id):
 
 
 # TRANSACTIONS ENTITY
-@app.route('/transactions', methods=['GET'])
+@app.get('/transactions')
 @login_required
 def transactions_page():
     page_num = request.args.get('page')
@@ -416,7 +453,7 @@ def delete_transaction(id):
 
 
 # CATEGORIES ENTITY
-@app.route('/categories', methods=['GET'])
+@app.get('/categories')
 @login_required
 def categories_page():
     page_num = request.args.get('page')
@@ -510,7 +547,7 @@ def delete_category(id):
 
 
 # TAGS ENTITY
-@app.route('/tags', methods=['GET'])
+@app.get('/tags')
 @login_required
 def tags_page():
     page_num = request.args.get('page')

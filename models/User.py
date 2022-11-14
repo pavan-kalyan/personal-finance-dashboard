@@ -26,7 +26,7 @@ class User:
         if row is None:
             return None
         user = User(id=row['id'], name=row['name'], email=row['email'],
-                    password='password', created_at=row['created_at'],
+                    password=row['password'], created_at=row['created_at'],
                     updated_at=format_time(row['updated_at']),
                     date_of_birth=row['date_of_birth']
                     )
