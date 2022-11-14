@@ -256,6 +256,8 @@ def transaction_edit_page(id):
         "SELECT A.*, O.name as org_name FROM Accounts A join Organizations O on A.org_id = O.id where uid=%s",
         current_user.id).fetchall()
     category_rows = g.conn.execute("SELECT * FROM Categories where uid=%s", current_user.id).fetchall()
+    tag_rows = g.conn.execute("SELECT * FROM Tags where uid=%s", current_user.id).fetchall()
+    tagged_as_rows = g.conn.execute("SELECT * FROM Tagged_As where txn_id=%s", id).fetchall()
 
     transaction_row = g.conn.execute("""
         SELECT T.*, A.name as account_name, A.account_number, C.name as contact, Cat.name as category, tag_list
@@ -273,9 +275,10 @@ def transaction_edit_page(id):
     contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
     accounts = [Account.from_row(row).__dict__ for row in account_rows]
     categories = [Category.from_row(row).__dict__ for row in category_rows]
-
+    tags = [Tag.from_row(row).__dict__ for row in tag_rows]
+    selected_tag_ids = [t.tag_id for t in tagged_as_rows]
     return render_template("transactions/edit.html", contacts=contacts, accounts=accounts, categories=categories,
-                           transaction=transaction)
+                           transaction=transaction, tags=tags, selected_tag_ids=selected_tag_ids)
 
 
 @app.post('/transactions/<id>/edit')
@@ -288,6 +291,7 @@ def edit_transaction(id):
     contact_id = info['contact'] if info['contact'] != "" else None
     category_id = info['category'] if info['category'] != "" else None
     memo = info['memo']
+    tags = request.form.getlist('tags')
 
     if not amount:
         flash("Please enter a valid amount")
@@ -299,6 +303,15 @@ def edit_transaction(id):
     g.conn.execute(text(
         "UPDATE Transactions SET date=:date, amount=:amount, account_id=:acc_id, contact_id=:contact_id, category_id=:category_id, memo=:memo WHERE id=:id"),
         date=date, id=id, amount=amount, acc_id=acc_id, contact_id=contact_id, category_id=category_id, memo=memo)
+
+    g.conn.execute(text(
+        "DELETE FROM Tagged_As WHERE txn_id=:id"
+    ), id=id)
+
+    for tag in tags:
+        g.conn.execute(text(
+            "INSERT INTO Tagged_As (tag_id, txn_id) VALUES(:tag_id, :txn_id) "
+        ), tag_id=tag, txn_id=id)
     return redirect('/transactions')
 
 
@@ -310,24 +323,27 @@ def transaction_creation_page():
         "SELECT A.*, O.name as org_name FROM Accounts A join Organizations O on A.org_id = O.id where uid=%s",
         current_user.id).fetchall()
     category_rows = g.conn.execute("SELECT * FROM Categories where uid=%s", current_user.id).fetchall()
+    tag_rows = g.conn.execute("SELECT * FROM Tags where uid=%s", current_user.id).fetchall()
 
     contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
     accounts = [Account.from_row(row).__dict__ for row in account_rows]
     categories = [Category.from_row(row).__dict__ for row in category_rows]
-    return render_template("transactions/create.html", contacts=contacts, accounts=accounts, categories=categories, date=datetime.date.today())
+    tags = [Tag.from_row(row).__dict__ for row in tag_rows]
+    return render_template("transactions/create.html", contacts=contacts, accounts=accounts, categories=categories, tags=tags, date=datetime.date.today())
 
 
 @app.post('/transactions')
 @login_required
 def transactions():
     if request.method == "POST":
-        info = request.form.to_dict()
+        info = request.form.to_dict(flat=false)
         date = info['date']
         amount = info['amount']
         acc_id = info['account']
         contact_id = info['contact'] if info['contact'] != "" else None
         category_id = info['category'] if info['category'] != "" else None
         memo = info['memo']
+        tags = request.form.getlist('tags')
         if not amount:
             flash("Please enter a valid amount")
             return redirect('/transactions/create')
@@ -340,6 +356,12 @@ def transactions():
                 "INSERT INTO Transactions (date, amount, account_id, contact_id, category_id, memo) VALUES (:date, :amount, :acc_id, :contact_id, :category_id, :memo) RETURNING ID"),
             date=date, amount=amount, acc_id=acc_id, contact_id=contact_id, category_id=category_id,
             memo=memo).fetchone()
+        for tag in tags:
+            g.conn.execute(
+                text(
+                    "INSERT INTO Tagged_As (tag_id, txn_id) VALUES(:tag_id, :txn_id)"
+                ), tag_id=tag, txn_id=transaction_row.id
+            )
         flash('Transaction has been added')
         return redirect('/transactions')
 

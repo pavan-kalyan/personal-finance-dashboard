@@ -12,20 +12,22 @@
     <form action="/accounts" method="post">
         <input type="text" placeholder="Type" name="type" value="{{
                 request.form.type }}">
+        <br> <br>
         <input type="text" placeholder="Name" name="name" value="{{
                 request.form.name }}">
-        <br>
+        <br> <br>
         <input type="number" placeholder="Balance" name="balance" value="{{
                 request.form.balance }}">
+        <br> <br>
         <input type="number" placeholder="Account Number" name="account_number" value="{{
                 request.form.account_number }}">
-        <br>
+        <br> <br>
         <select name="organization">
             {% for org in organizations %}
                 <option value="{{ org.id }}">{{ org.name }}</option>
             {% endfor %}
         </select>
-        <br>
+        <br> <br>
         <input class="btn btn-default" type="submit" value="Add Account">
     </form>
 {% endblock %}

@@ -10,29 +10,34 @@
     <h1>Add new Transaction</h1>
     <br>
     <form action="/transactions" method="post">
-        <input type="date" name="date" value="{{ date }}">
+        <input type="date" name="date" value="{{ date }}"> <br> <br>
         <input type="number" placeholder="Amount" name="amount" value="{{
-                request.form.amount }}">
+                request.form.amount }}"> <br> <br>
         <select name="account">
             {% for acc in accounts %}
                 <option value="{{ acc.id }}">{{ acc.name }}</option>
             {% endfor %}
-        </select>
+        </select> <br> <br>
         <select name="contact">
             <option value=""> --select a contact-- </option>
             {% for c in contacts %}
                 <option value="{{ c.id }}">{{ c.name }}</option>
             {% endfor %}
-        </select>
+        </select> <br> <br>
         <select name="category">
             <option value=""> --select a category-- </option>
             {% for cat in categories %}
                 <option value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
-        </select>
+        </select> <br> <br>
+        <select name="tags" multiple>
+            {% for tag in tags %}
+                <option value="{{ tag.id }}">{{ tag.name }}</option>
+            {% endfor %}
+        </select> <br> <br>
         <input type="text" placeholder="Memo" name="memo" value="{{
                 request.form.memo }}">
-        <br>
+        <br> <br>
         <input class="btn btn-default" type="submit" value="Add Transaction">
     </form>
 {% endblock %}
