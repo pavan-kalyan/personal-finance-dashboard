@@ -288,6 +288,14 @@ def edit_transaction(id):
     contact_id = info['contact'] if info['contact'] != "" else None
     category_id = info['category'] if info['category'] != "" else None
     memo = info['memo']
+
+    if not amount:
+        flash("Please enter a valid amount")
+        return redirect('/transactions/%s/edit' % id)
+    if not date:
+        flash("Please select a date")
+        return redirect('/transactions/%s/edit' % id)
+
     g.conn.execute(text(
         "UPDATE Transactions SET date=:date, amount=:amount, account_id=:acc_id, contact_id=:contact_id, category_id=:category_id, memo=:memo WHERE id=:id"),
         date=date, id=id, amount=amount, acc_id=acc_id, contact_id=contact_id, category_id=category_id, memo=memo)
@@ -320,6 +328,13 @@ def transactions():
         contact_id = info['contact'] if info['contact'] != "" else None
         category_id = info['category'] if info['category'] != "" else None
         memo = info['memo']
+        if not amount:
+            flash("Please enter a valid amount")
+            return redirect('/transactions/create')
+        if not date:
+            flash("Please select a date")
+            return redirect('/transactions/create')
+
         transaction_row = g.conn.execute(
             text(
                 "INSERT INTO Transactions (date, amount, account_id, contact_id, category_id, memo) VALUES (:date, :amount, :acc_id, :contact_id, :category_id, :memo) RETURNING ID"),
@@ -380,6 +395,14 @@ def edit_category(id):
     info = request.form.to_dict()
     name = info['name']
     group = info['group']
+
+    if not name:
+        flash("Please enter a name")
+        return redirect('/categories/%s/edit' % id)
+    if not group:
+        flash("Please select a group")
+        return redirect('/categories/%s/edit' % id)
+
     g.conn.execute(text(
         "UPDATE Categories SET name=:name, group=:group WHERE id=:id"),
         name=name, group=group, id=id)
@@ -399,6 +422,14 @@ def categories():
         info = request.form.to_dict()
         name = info['name']
         group = info['group']
+
+        if not name:
+            flash("Please enter a name")
+            return redirect('/categories/create')
+        if not group:
+            flash("Please select a group")
+            return redirect('/categories/create')
+
         category_row = g.conn.execute(
             text(
                 "INSERT INTO Categories (uid, name, \"group\") VALUES (:uid, :name, :group) RETURNING ID"),
@@ -457,6 +488,11 @@ def tag_edit_page(id):
 def edit_tag(id):
     info = request.form.to_dict()
     name = info['name']
+
+    if not name:
+        flash("Please enter a name")
+        return redirect('/tags/%s/edit' % id)
+
     g.conn.execute(text(
         "UPDATE Tags SET name=:name WHERE id=:id"),
         name=name,  id=id)
@@ -475,6 +511,11 @@ def tags():
     if request.method == "POST":
         info = request.form.to_dict()
         name = info['name']
+
+        if not name:
+            flash("Please enter a name")
+            return redirect('/tags/create')
+
         tag_row = g.conn.execute(
             text(
                 "INSERT INTO Tags (uid, name) VALUES (:uid, :name) RETURNING ID"),
@@ -522,7 +563,7 @@ def add_contact():
     email = info['email']
     if not name:
         flash("Please enter name")
-        return redirect('/contacts')
+        return redirect('contacts/')
     if not email:
         flash("Please enter email")
         return redirect('/contacts')
@@ -592,12 +633,13 @@ def delete_contact(id):
 @app.get('/reports/')
 @login_required
 def get_reports():
+
     month = request.args.get('month')
     year = request.args.get('year')
     query="""SELECT sum(T.amount) as total_expenditure, MAX(T.amount) as most_expensive_transaction, 
             EXTRACT(MONTH FROM T.date) as month, EXTRACT(YEAR FROM T.date) as year,
             C.name as category_name 
-        FROM Transactions T join Categories C on T.category_id = C.id join Accounts A on A.id = T.account_id
+        FROM Transactions T full join Categories C on T.category_id = C.id join Accounts A on A.id = T.account_id
         WHERE T.amount < 0 and A.uid = %s
         """
     if month:
