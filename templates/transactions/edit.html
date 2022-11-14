@@ -11,32 +11,40 @@
     <br>
     <form action="/transactions/{{ transaction.id }}/edit" method="post">
         <input type="date" name="date" value="{{ transaction.date.date() }}"> <br> <br>
+{#        <input type="time" name="time" value="{{ transaction.date.time() }}"> <br> <br>#}
+        <br> <br>
         <input type="number" placeholder="Amount" name="amount" value="{{
-                transaction.amount }}"> <br> <br>
+                transaction.amount }}">
+        <br> <br>
         <select name="account" value="{{ transaction.account }}">
             {% for acc in accounts %}
                 <option {% if transaction.account_id==acc.id %} selected {% endif %} value="{{ acc.id }}">{{ acc.name }}</option>
             {% endfor %}
-        </select> <br> <br>
+        </select>
+        <br> <br>
         <select name="contact" value="{{ transaction.contact }}">
             <option value=""> --select a contact-- </option>
             {% for c in contacts %}
                 <option {% if transaction.contact_id==c.id %} selected {% endif %} value="{{ c.id }}">{{ c.name }}</option>
             {% endfor %}
-        </select> <br> <br>
+        </select>
+        <br> <br>
         <select name="category" value="{{ transaction.category }}">
             <option value=""> --select a category-- </option>
             {% for cat in categories %}
                 <option {% if transaction.category_id==cat.id %} selected {% endif %} value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
-        </select> <br> <br>
-        <input type="text" placeholder="Memo" name="memo" value="{{ transaction.memo }}"> <br> <br>
+        </select>
+        <br> <br>
+        <label>Select tags. Hold down CTRL to select multiple tags</label> <br>
         <select name="tags" multiple>
             {% for tag in tags %}
                 <option {% if tag.id in selected_tag_ids %} selected {% endif %} value="{{ tag.id }}">{{ tag.name }}</option>
             {% endfor %}
-        </select> <br>
-        <br>
+        </select>
+        <br> <br>
+        <input type="text" placeholder="Memo" name="memo" value="{{ transaction.memo }}">
+        <br> <br>
         <input class="btn btn-default" type="submit" value="Update Transaction">
     </form>
 {% endblock %}

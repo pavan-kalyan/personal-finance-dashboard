@@ -11,6 +11,7 @@
     <br>
     <form action="/transactions" method="post">
         <input type="date" name="date" value="{{ date }}"> <br> <br>
+{#        <input type="time" name="time" value="{{ request.form.time }}"> <br> <br>#}
         <input type="number" placeholder="Amount" name="amount" value="{{
                 request.form.amount }}"> <br> <br>
         <select name="account">
@@ -30,6 +31,7 @@
                 <option value="{{ cat.id }}">{{ cat.name }}</option>
             {% endfor %}
         </select> <br> <br>
+        <label>Select tags. Hold down CTRL to select multiple tags</label> <br>
         <select name="tags" multiple>
             {% for tag in tags %}
                 <option value="{{ tag.id }}">{{ tag.name }}</option>

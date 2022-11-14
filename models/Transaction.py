@@ -1,6 +1,9 @@
 from utils import format_time
+
+
 class Transaction:
-    def __init__(self, id, amount, account_id, account_name, account_number, contact, contact_id, category, category_id, memo, tag_list, date=None, created_at=None, updated_at=None):
+    def __init__(self, id, amount, account_id, account_name, account_number, contact, contact_id, category, category_id,
+                 memo, tag_list, date=None, created_at=None, updated_at=None):
         self.id = id
         self.amount = amount
         self.account_id = account_id
@@ -28,7 +31,7 @@ class Transaction:
             return None
         transaction = Transaction(id=row['id'],
                                   amount=row['amount'],
-                                  date=row['date'],
+                                  date=format_time(row['date'], True),
                                   created_at=format_time(row['created_at']),
                                   updated_at=format_time(row['updated_at']),
                                   account_id=row['account_id'],

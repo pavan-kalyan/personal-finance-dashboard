@@ -51,6 +51,7 @@ engine = create_engine(DATABASEURI)
 with open('migrations/initial.sql', 'r') as file:
     data = file.read()
 
+engine.execute(data)
 
 @app.before_request
 def before_request():
@@ -407,6 +408,7 @@ def transactions():
     if request.method == "POST":
         info = request.form.to_dict(flat=false)
         date = info['date']
+        # time = info['time']
         amount = info['amount']
         acc_id = info['account']
         contact_id = info['contact'] if info['contact'] != "" else None
