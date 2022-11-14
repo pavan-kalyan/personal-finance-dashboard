@@ -7,6 +7,8 @@ DROP TABLE IF EXISTS Categories CASCADE;
 DROP TABLE IF EXISTS Transactions CASCADE;
 DROP TABLE IF EXISTS Tagged_As CASCADE;
 
+set timezone TO 'EST';
+
 -- CREATE ALL TABLES
 CREATE  TABLE IF NOT EXISTS Organizations (
 	id serial,

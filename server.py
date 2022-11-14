@@ -69,6 +69,7 @@ def before_request():
   """
     try:
         g.conn = engine.connect()
+        g.conn.execute("SET timezone to 'EST'")
     except:
         print("uh oh, problem connecting to database")
         import traceback
