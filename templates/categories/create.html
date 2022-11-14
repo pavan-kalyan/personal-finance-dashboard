@@ -11,14 +11,14 @@
     <br>
     <form action="/categories" method="post">
         <input type="text" placeholder="Name" name="name" value="{{ request.form.name }}">
-        <br>
+        <br> <br>
         <select name="group">
-            <option selected hidden disabled value="">--select an option--</option>
+            <option selected hidden disabled value="">--select a group--</option>
             <option value="income">income</option>
             <option value="expense">expense</option>
             <option value="investment">investment</option>
         </select>
-        <br>
+        <br> <br>
         <input class="btn btn-default" type="submit" value="Add Category">
     </form>
 {% endblock %}

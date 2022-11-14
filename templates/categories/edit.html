@@ -11,13 +11,13 @@
     <br>
     <form action="/categories/{{ category.id }}/edit" method="post">
         <input type="text" placeholder="Name" name="name" value="{{ category.name }}">
-        <br>
+        <br> <br>
         <select name="group">
             <option value="income">income</option>
             <option value="expense">expense</option>
             <option value="investment">investment</option>
         </select>
-        <br>
+        <br> <br>
         <input class="btn btn-default" type="submit" value="Update Category">
     </form>
 {% endblock %}
