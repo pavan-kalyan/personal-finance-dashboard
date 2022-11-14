@@ -8,9 +8,27 @@
 {% endblock %}
 {% block content %}
   <h1>Reports</h1>
+{#    {{ current_month=='9' }}#}
     <form action="/reports/" method="get">
-        <input type="text" placeholder="Year" name="year">
-        <input type="text" placeholder="Month" name="month">
+        <select name="year">
+            {% for year in years %}
+                <option {% if year==current_year %} selected {% endif %} value="{{ year }}">{{ year }}</option>
+            {%  endfor %}
+        </select>
+        <select name="month">
+            <option {% if '1'==current_month %} selected {% endif %} value="1">Jan</option>
+            <option {% if '2'==current_month %} selected {% endif %}  value="2">Feb</option>
+            <option {% if '3'==current_month %} selected {% endif %}  value="3">Mar</option>
+            <option {% if '4'==current_month %} selected {% endif %}  value="4">Apr</option>
+            <option {% if '5'==current_month %} selected {% endif %}  value="5">May</option>
+            <option {% if '6'==current_month %} selected {% endif %}  value="6">Jun</option>
+            <option {% if '7'==current_month %} selected {% endif %}  value="7">Jul</option>
+            <option {% if '8'==current_month %} selected {% endif %}  value="8">Aug</option>
+            <option {% if '9'==current_month %} selected {% endif %}  value="9">Sep</option>
+            <option {% if '10'==current_month %} selected {% endif %}  value="10">Oct</option>
+            <option {% if '11'==current_month %} selected {% endif %}  value="11">Nov</option>
+            <option {% if '12'==current_month %} selected {% endif %}  value="12">Dec</option>
+        </select>
         <br>
         <input class="btn btn-default" type="submit" value="Generate Report">
     </form>

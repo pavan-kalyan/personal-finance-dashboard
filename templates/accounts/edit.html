@@ -10,7 +10,11 @@
     <h1>Edit Account</h1>
     <br>
     <form action="/accounts/{{ account.id }}/edit" method="post">
-        <input type="text" placeholder="Type" name="type" value="{{ account.type }}">
+        <select name="type" value="{{ account.type }}">
+            {% for type in types %}
+                <option {% if account.type==type %} selected {% endif %} value="{{ type }}">{{ type }}</option>
+            {% endfor %}
+        </select>
         <br> <br>
         <input type="text" placeholder="Name" name="name" value="{{ account.name }}">
         <br> <br>
