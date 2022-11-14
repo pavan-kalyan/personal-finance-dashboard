@@ -1,7 +1,4 @@
  - Implement last updated
  - Display timestamp without millis
  - Limit pagination until it's empty
- - Use Dropdowns for selecting month and year in reports
- - Look for more bugs
- - default error handler
- - Validate entries in edit and create (start with accounts)
+ -      default error handler
