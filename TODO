@@ -1,9 +1,7 @@
- - Validate entries in edit and create (start with accounts)
-
- - Transactions currently displays tags but can't edit them
+ - Implement last updated
  - Display timestamp without millis
  - Limit pagination until it's empty
  - Use Dropdowns for selecting month and year in reports
  - Look for more bugs
  - default error handler
- - labels for edit and create
+ - Validate entries in edit and create (start with accounts)
