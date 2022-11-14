@@ -1,3 +1,4 @@
+from utils import format_time
 class Category:
     def __init__(self, id, uid, name, group, created_at=None, updated_at=None):
         self.id = id
@@ -19,7 +20,7 @@ class Category:
                             uid=row['uid'],
                             name=row['name'],
                             group=row['group'],
-                            created_at=row['created_at'],
-                            updated_at=row['updated_at'] if row['updated_at'] is not None else "",
+                            created_at=format_time(row['created_at']),
+                            updated_at=format_time(row['updated_at'])
                             )
         return category

@@ -1,3 +1,4 @@
+from utils import format_time
 class Organization:
     def __init__(self, id, name, location, created_at=None, updated_at=None):
         self.id = id
@@ -17,7 +18,7 @@ class Organization:
         org = Organization(id=row['id'],
                            name=row['name'],
                            location=row['location'],
-                           created_at=row['created_at'],
-                           updated_at=row['updated_at'] if row['updated_at'] is not None else "",
+                           created_at=format_time(row['created_at']),
+                           updated_at=format_time(row['updated_at']),
                            )
         return org

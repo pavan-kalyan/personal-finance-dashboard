@@ -1,3 +1,4 @@
+from utils import format_time
 class Transaction:
     def __init__(self, id, amount, account_id, account_name, account_number, contact, contact_id, category, category_id, memo, tag_list, date=None, created_at=None, updated_at=None):
         self.id = id
@@ -28,8 +29,8 @@ class Transaction:
         transaction = Transaction(id=row['id'],
                                   amount=row['amount'],
                                   date=row['date'],
-                                  created_at=row['created_at'],
-                                  updated_at=row['updated_at'] if row['updated_at'] is not None else "",
+                                  created_at=format_time(row['created_at']),
+                                  updated_at=format_time(row['updated_at']),
                                   account_id=row['account_id'],
                                   account_name=row['account_name'],
                                   account_number=row['account_number'],

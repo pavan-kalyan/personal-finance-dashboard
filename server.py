@@ -94,6 +94,8 @@ def handle_generic_internal_error(e):
 
 
 app.register_error_handler(500, handle_generic_internal_error)
+
+
 #
 # @app.route is a decorator around index() that means:
 #   run index() whenever the user tries to access the "/" path using a GET request
@@ -126,6 +128,7 @@ def index():
         return redirect('/accounts')
     else:
         return redirect('/login')
+
 
 @app.get('/organizations')
 @login_required
@@ -172,7 +175,8 @@ def account_edit_page(id):
         return redirect('/accounts')
     account = Account.from_row(account_row)
     organizations = [Organization.from_row(row).__dict__ for row in org_rows]
-    return render_template("accounts/edit.html", organizations=organizations, account=account, types=['savings', 'checking', 'investment'])
+    return render_template("accounts/edit.html", organizations=organizations, account=account,
+                           types=['savings', 'checking', 'investment'])
 
 
 @app.post('/accounts/<id>/edit')
@@ -187,7 +191,7 @@ def edit_account(id):
     if not name:
         flash('Please provide name')
         return redirect('/accounts/' + str(id) + '/edit')
-    type = info.get('type',None)
+    type = info.get('type', None)
     if not type:
         flash('Please choose type')
         return redirect('/accounts/' + str(id) + '/edit')
@@ -211,7 +215,8 @@ def edit_account(id):
 def account_creation_page():
     org_rows = g.conn.execute("SELECT * FROM Organizations;").fetchall()
     organizations = [Organization.from_row(row).__dict__ for row in org_rows]
-    return render_template("accounts/create.html", organizations=organizations, types=['savings', 'checking', 'investment'])
+    return render_template("accounts/create.html", organizations=organizations,
+                           types=['savings', 'checking', 'investment'])
 
 
 @app.post('/accounts')
@@ -220,7 +225,7 @@ def accounts():
     info = request.form.to_dict()
     org_id = info['organization']
     name = info['name']
-    type = info.get('type',None)
+    type = info.get('type', None)
     balance = info['balance']
     account_number = info['account_number']
     if not type or type not in ['savings', 'checking', 'investment']:
@@ -245,7 +250,6 @@ def accounts():
         type=type, name=name, balance=balance, a_num=account_number, org_id=org_id, uid=uid).fetchone()
     flash('Account has been added')
     return redirect('/accounts')
-
 
 
 @app.route('/accounts/<id>/delete/', methods=['GET'])
@@ -361,7 +365,8 @@ def transaction_creation_page():
     accounts = [Account.from_row(row).__dict__ for row in account_rows]
     categories = [Category.from_row(row).__dict__ for row in category_rows]
     tags = [Tag.from_row(row).__dict__ for row in tag_rows]
-    return render_template("transactions/create.html", contacts=contacts, accounts=accounts, categories=categories, tags=tags, date=datetime.date.today())
+    return render_template("transactions/create.html", contacts=contacts, accounts=accounts, categories=categories,
+                           tags=tags, date=datetime.date.today())
 
 
 @app.post('/transactions')
@@ -549,7 +554,7 @@ def edit_tag(id):
 
     g.conn.execute(text(
         "UPDATE Tags SET name=:name WHERE id=:id"),
-        name=name,  id=id)
+        name=name, id=id)
     return redirect('/tags')
 
 
@@ -599,15 +604,17 @@ def list_contacts():
         page_num = int(page_num)
 
     contact_rows = engine.execute(text("SELECT * FROM Contacts where uid=:uid LIMIT 20 OFFSET :page_num;"),
-                              uid=current_user.id, page_num=page_num * 20).fetchall()
+                                  uid=current_user.id, page_num=page_num * 20).fetchall()
 
     contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
     return render_template("contacts/list.html", contacts=contacts, page_num=page_num)
+
 
 @app.get('/contacts/create')
 @login_required
 def contact_creation_page():
     return render_template("contacts/create.html")
+
 
 @app.post('/contacts/')
 @login_required
@@ -621,7 +628,7 @@ def add_contact():
     if not email:
         flash("Please enter email")
         return redirect('/contacts')
-    if not re.match(EMAIL_REGEX,email):
+    if not re.match(EMAIL_REGEX, email):
         flash("Please enter valid email")
         return redirect('/contacts')
     contact_row = g.conn.execute(
@@ -630,6 +637,7 @@ def add_contact():
         name=name, uid=current_user.id, email=email).fetchone()
     flash('Contact has been added')
     return redirect('/contacts')
+
 
 @app.get('/contacts/<id>/edit')
 @login_required
@@ -647,6 +655,7 @@ def get_edit_contact_page(id):
 
     return render_template("contacts/edit.html", contact=contact)
 
+
 @app.post('/contacts/<id>/edit')
 @login_required
 def edit_contact(id):
@@ -659,7 +668,7 @@ def edit_contact(id):
     if not email:
         flash("Please enter email")
         return redirect('/contacts')
-    if not re.match(EMAIL_REGEX,email):
+    if not re.match(EMAIL_REGEX, email):
         flash("Please enter valid email")
         return redirect('/contacts')
 
@@ -679,20 +688,21 @@ def delete_contact(id):
             flash("A transaction that uses this contact exists. delete that first.")
             return redirect('/contacts')
 
-
     if del_res.rowcount < 1:
         flash('Failed to delete Contact. May not exist or you don\'t have the right permissions')
     return redirect('/contacts')
 
+
 @app.get('/reports/')
 @login_required
 def get_reports():
-
     month = request.args.get('month')
     year = request.args.get('year')
-    years = g.conn.execute("""SELECT DISTINCT EXTRACT(YEAR FROM T.date) FROM Transactions T join Accounts A on A.id = T.account_id where T.amount < 0 and A.uid=%s""", current_user.id).fetchall()
+    years = g.conn.execute(
+        """SELECT DISTINCT EXTRACT(YEAR FROM T.date) FROM Transactions T join Accounts A on A.id = T.account_id where T.amount < 0 and A.uid=%s""",
+        current_user.id).fetchall()
     years = [int(year[0]) for year in years]
-    query="""SELECT sum(T.amount) as total_expenditure, MAX(T.amount) as most_expensive_transaction, 
+    query = """SELECT sum(T.amount) as total_expenditure, MAX(T.amount) as most_expensive_transaction, 
             EXTRACT(MONTH FROM T.date) as month, EXTRACT(YEAR FROM T.date) as year,
             C.name as category_name 
         FROM Transactions T full join Categories C on T.category_id = C.id join Accounts A on A.id = T.account_id
@@ -703,7 +713,7 @@ def get_reports():
     if year:
         query += " AND EXTRACT(YEAR FROM T.date)=" + year + " "
 
-    query +="""
+    query += """
         GROUP BY EXTRACT(YEAR FROM T.date), EXTRACT(MONTH FROM T.date), C.id
         ORDER BY total_expenditure asc;"""
     rows = g.conn.execute(query, current_user.id)
@@ -774,8 +784,8 @@ def logout():
     logout_user()
     return redirect('/')
 
-EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
+EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
 if __name__ == "__main__":
     import click

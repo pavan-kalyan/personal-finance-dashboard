@@ -1,3 +1,4 @@
+from utils import format_time
 class Account:
     def __init__(self, id, type, name, balance, account_number, org_id, uid, org_name,
                  created_at=None, updated_at=None, ):
@@ -29,7 +30,7 @@ class Account:
                           org_id=row['org_id'],
                           org_name=row['org_name'],
                           uid=row['uid'],
-                          created_at=row['created_at'],
-                          updated_at=row['updated_at'] if row['updated_at'] is not None else "",
+                          created_at=format_time(row['created_at']),
+                          updated_at=format_time(row['updated_at']),
                           )
         return account
