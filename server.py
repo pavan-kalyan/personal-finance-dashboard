@@ -51,12 +51,6 @@ engine = create_engine(DATABASEURI)
 with open('migrations/initial.sql', 'r') as file:
     data = file.read()
 
-engine.execute(data)
-
-res = engine.execute("SELECT * FROM Users where id = 1;")
-
-user = User.from_row(res.fetchone())
-
 
 @app.before_request
 def before_request():
@@ -309,7 +303,7 @@ def transactions_page():
     else:
         page_num = int(page_num)
 
-    trans_rows = engine.execute(text("""
+    trans_rows = g.conn.execute(text("""
     SELECT T.*, A.name as account_name, A.account_number, C.name as contact, Cat.name as category, tag_list
     FROM Transactions T JOIN Accounts A ON T.account_id=A.id 
     FULL JOIN Contacts C ON T.contact_id=C.id 
@@ -462,7 +456,7 @@ def categories_page():
     else:
         page_num = int(page_num)
 
-    cat_rows = engine.execute(text("SELECT * FROM Categories where uid=:uid ORDER BY name LIMIT 20 OFFSET :page_num;"),
+    cat_rows = g.conn.execute(text("SELECT * FROM Categories where uid=:uid ORDER BY name LIMIT 20 OFFSET :page_num;"),
                               uid=current_user.id, page_num=page_num * 20).fetchall()
 
     categories = [Category.from_row(row).__dict__ for row in cat_rows]
@@ -556,7 +550,7 @@ def tags_page():
     else:
         page_num = int(page_num)
 
-    tag_rows = engine.execute(text("SELECT * FROM Tags where uid=:uid ORDER BY name LIMIT 20 OFFSET :page_num;"),
+    tag_rows = g.conn.execute(text("SELECT * FROM Tags where uid=:uid ORDER BY name LIMIT 20 OFFSET :page_num;"),
                               uid=current_user.id, page_num=page_num * 20).fetchall()
 
     tags = [Tag.from_row(row).__dict__ for row in tag_rows]
