@@ -10,9 +10,9 @@
     <h1>Edit Transaction</h1>
     <br>
     <form action="/transactions/{{ transaction.id }}/edit" method="post">
-        <input type="date" name="date" value="{{ transaction.date.date() }}"> <br> <br>
+        <input type="date" name="date" value="{{ transaction.date }}"> <br> <br>
 {#        <input type="time" name="time" value="{{ transaction.date.time() }}"> <br> <br>#}
-        <br> <br>
+{#        <br> <br>#}
         <input type="number" placeholder="Amount" step="0.01" name="amount" value="{{
                 transaction.amount }}">
         <br> <br>
