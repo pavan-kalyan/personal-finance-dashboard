@@ -656,13 +656,13 @@ def add_contact():
     email = info['email']
     if not name:
         flash("Please enter name")
-        return redirect('contacts/')
+        return redirect('/contacts/create')
     if not email:
         flash("Please enter email")
-        return redirect('/contacts')
+        return redirect('/contacts/create')
     if not re.match(EMAIL_REGEX, email):
         flash("Please enter valid email")
-        return redirect('/contacts')
+        return redirect('/contacts/create')
     contact_row = g.conn.execute(
         text(
             "INSERT INTO Contacts (uid, name, email) VALUES (:uid, :name, :email) RETURNING ID"),
@@ -707,7 +707,7 @@ def edit_contact(id):
     g.conn.execute(text(
         "UPDATE Contacts SET name=:name, email=:email, updated_at=now() WHERE id=:id"),
         name=name, email=email, id=id)
-    return redirect('/contacts')
+    return redirect('/contacts/%s/edit' % id)
 
 
 @app.get('/contacts/<id>/delete')
