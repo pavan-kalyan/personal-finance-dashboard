@@ -12,7 +12,7 @@
     <form action="/transactions" method="post">
         <input type="date" name="date" value="{{ date }}"> <br> <br>
 {#        <input type="time" name="time" value="{{ request.form.time }}"> <br> <br>#}
-        <input type="number" placeholder="Amount" name="amount" value="{{
+        <input type="number" placeholder="Amount" step="0.01" name="amount" value="{{
                 request.form.amount }}"> <br> <br>
         <select name="account">
             {% for acc in accounts %}

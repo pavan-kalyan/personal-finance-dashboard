@@ -13,7 +13,7 @@
         <input type="date" name="date" value="{{ transaction.date.date() }}"> <br> <br>
 {#        <input type="time" name="time" value="{{ transaction.date.time() }}"> <br> <br>#}
         <br> <br>
-        <input type="number" placeholder="Amount" name="amount" value="{{
+        <input type="number" placeholder="Amount" step="0.01" name="amount" value="{{
                 transaction.amount }}">
         <br> <br>
         <select name="account" value="{{ transaction.account }}">
