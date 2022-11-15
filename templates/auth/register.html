@@ -15,11 +15,14 @@
     <br>
     <form action="/register" method="post">
         <input type="text" placeholder="Email" name="email" value="{{
-                request.form.email }}">
+                request.form.email }}"> <br> <br>
         <input type="password" placeholder="Password" name="password" value="{{
-                request.form.password }}">
+                request.form.password }}"> <br> <br>
         <input type="text" placeholder="Name" name="name" value="{{
-                request.form.name }}">
+                request.form.name }}"> <br> <br>
+        <label>Date of Birth</label>
+        <input type="date" placeholder="Date of Birth" name="dob" value="{{
+                request.form.dob }}"> <br> <br>
 {#        <input type="text" placeholder="Name" name="name" value="{{#}
 {#                request.form.name }}">#}
         <input class="btn btn-default" type="submit" value="Sign Up">

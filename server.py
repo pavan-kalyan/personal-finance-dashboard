@@ -51,6 +51,7 @@ engine = create_engine(DATABASEURI)
 with open('migrations/initial.sql', 'r') as file:
     data = file.read()
 
+engine.execute(data)
 
 @app.before_request
 def before_request():
@@ -407,6 +408,7 @@ def transactions():
     if request.method == "POST":
         info = request.form.to_dict(flat=false)
         date = info['date']
+        # time = info['time']
         amount = info['amount']
         acc_id = info['account']
         contact_id = info['contact'] if info['contact'] != "" else None
@@ -796,9 +798,10 @@ def register():
     else:
         password = info['password']
         name = info['name']
+        dob = info['dob']
         user_row = g.conn.execute(
-            text("INSERT INTO Users(name, email, password) VALUES(:name,:email,:pwd) RETURNING id"),
-            {'name': name, 'email': email, 'pwd': password}).fetchone()
+            text("INSERT INTO Users(name, email, password, date_of_birth) VALUES(:name,:email,:pwd, :dob) RETURNING id"),
+            {'name': name, 'email': email, 'pwd': password, 'dob': dob}).fetchone()
         result = g.conn.execute("SELECT * FROM Users where id=%s", user_row.id)
         user = User.from_row(result.fetchone())
         login_user(user)
