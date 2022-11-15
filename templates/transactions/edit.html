@@ -36,6 +36,7 @@
             {% endfor %}
         </select>
         <br> <br>
+        {% if tags is defined and tags[0] is defined %}
         <label>Select tags. Hold down CTRL to select multiple tags</label> <br>
         <select name="tags" multiple>
             {% for tag in tags %}
@@ -43,6 +44,7 @@
             {% endfor %}
         </select>
         <br> <br>
+        {% endif %}
         <input type="text" placeholder="Memo" name="memo" value="{{ transaction.memo }}">
         <br> <br>
         <input class="btn btn-default" type="submit" value="Update Transaction">
