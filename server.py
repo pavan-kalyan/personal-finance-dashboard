@@ -53,6 +53,7 @@ with open('migrations/initial.sql', 'r') as file:
 
 engine.execute(data)
 
+
 @app.before_request
 def before_request():
     """
@@ -131,6 +132,7 @@ def index():
 def profile_page():
     return render_template('/profile.html', user=current_user)
 
+
 @app.post('/profile/<id>/edit')
 @login_required
 def update_profile(id):
@@ -160,7 +162,6 @@ def update_profile(id):
         "UPDATE Users SET name=:name, email=:email, password=:password, date_of_birth=:dob WHERE id=:id"
     ), name=name, email=email, password=password, dob=dob, id=id)
     return redirect('/profile')
-
 
 
 @app.get('/organizations')
@@ -396,6 +397,9 @@ def transaction_creation_page():
 
     contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
     accounts = [Account.from_row(row).__dict__ for row in account_rows]
+    if len(accounts) == 0:
+        flash('Please add an account first')
+        return redirect('/transactions')
     categories = [Category.from_row(row).__dict__ for row in category_rows]
     tags = [Tag.from_row(row).__dict__ for row in tag_rows]
     return render_template("transactions/create.html", contacts=contacts, accounts=accounts, categories=categories,
@@ -638,7 +642,7 @@ def list_contacts():
         page_num = int(page_num)
 
     contact_rows = g.conn.execute(text("SELECT * FROM Contacts where uid=:uid ORDER BY id LIMIT 20 OFFSET :page_num;"),
-                              uid=current_user.id, page_num=page_num * 20).fetchall()
+                                  uid=current_user.id, page_num=page_num * 20).fetchall()
 
     contacts = [Contact.from_row(row).__dict__ for row in contact_rows]
     return render_template("contacts/list.html", contacts=contacts, page_num=page_num)
@@ -812,7 +816,8 @@ def register():
             flash("Please enter a password")
             return redirect('/register')
         user_row = g.conn.execute(
-            text("INSERT INTO Users(name, email, password, date_of_birth) VALUES(:name,:email,:pwd, :dob) RETURNING id"),
+            text(
+                "INSERT INTO Users(name, email, password, date_of_birth) VALUES(:name,:email,:pwd, :dob) RETURNING id"),
             {'name': name, 'email': email, 'pwd': password, 'dob': dob}).fetchone()
         result = g.conn.execute("SELECT * FROM Users where id=%s", user_row.id)
         user = User.from_row(result.fetchone())
