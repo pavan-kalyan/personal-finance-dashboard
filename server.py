@@ -792,6 +792,12 @@ def register():
     info = request.form.to_dict()
     email = info['email']
     result = g.conn.execute("SELECT * FROM Users where email=%s;", email)
+    if not email:
+        flash("Please enter an email")
+        return redirect('/register')
+    if not re.match(EMAIL_REGEX, email):
+        flash("Please enter valid email")
+        return redirect('/register')
     if result.rowcount > 0:
         flash("This email is taken")
         return redirect('/register')
@@ -799,6 +805,12 @@ def register():
         password = info['password']
         name = info['name']
         dob = info['dob']
+        if not name:
+            flash("Please enter a name")
+            return redirect('/register')
+        if not password:
+            flash("Please enter a password")
+            return redirect('/register')
         user_row = g.conn.execute(
             text("INSERT INTO Users(name, email, password, date_of_birth) VALUES(:name,:email,:pwd, :dob) RETURNING id"),
             {'name': name, 'email': email, 'pwd': password, 'dob': dob}).fetchone()
@@ -811,7 +823,7 @@ def register():
 
 @app.get('/register')
 def get_register_page():
-    return render_template("auth/register.html", **{})
+    return render_template("auth/register.html", dob=datetime.date.today())
 
 
 @app.route('/logout', methods=['POST'])
