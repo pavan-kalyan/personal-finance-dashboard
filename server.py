@@ -753,7 +753,7 @@ def get_reports():
     rows = g.conn.execute(query, current_user.id)
     report_rows = [ExpenditureReport.from_row(row).__dict__ for row in rows]
     return render_template("/reports.html", expenditure_report=report_rows, years=years,
-                           current_year=year, current_month=month)
+                           current_year=str(year), current_month=month)
 
 
 @login_manager.user_loader

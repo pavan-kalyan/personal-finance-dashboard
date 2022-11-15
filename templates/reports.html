@@ -11,11 +11,13 @@
 {#    {{ current_month=='9' }}#}
     <form action="/reports/" method="get">
         <select name="year">
+            <option selected hidden disabled value=""> --select a year-- </option>
             {% for year in years %}
-                <option {% if year==current_year %} selected {% endif %} value="{{ year }}">{{ year }}</option>
+                <option {% if year|string==current_year %} selected {% endif %} value="{{ year }}">{{ year }}</option>
             {%  endfor %}
         </select>
         <select name="month">
+            <option selected  hidden disabled value=""> --select a month-- </option>
             <option {% if '1'==current_month %} selected {% endif %} value="1">Jan</option>
             <option {% if '2'==current_month %} selected {% endif %}  value="2">Feb</option>
             <option {% if '3'==current_month %} selected {% endif %}  value="3">Mar</option>
